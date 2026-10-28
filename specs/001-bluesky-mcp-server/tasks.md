@@ -129,18 +129,18 @@ GitHub account and an outside IP are refused (quickstart steps 4–5).
 
 ### Tests for User Story 5
 
-- [ ] T033 [P] [US5] Integration tests in `tests/contract/test_http_routes.py` using the ASGI app: every route in contracts/http-routes.md has the stated IP rule (enforced vs exempt), unknown paths 404, `/mcp` without a token is rejected, and startup fails closed with missing required production settings
+- [X] T033 [P] [US5] Integration tests in `tests/contract/test_http_routes.py` using the ASGI app: every route in contracts/http-routes.md has the stated IP rule (enforced vs exempt), unknown paths 404, `/mcp` without a token is rejected, and startup fails closed with missing required production settings
 
 ### Implementation for User Story 5
 
-- [ ] T034 [P] [US5] Add `vercel.json` with `$schema` and `functions` `excludeFiles` for `tests/**`, `specs/**`, `.specify/**`, `.claude/**`, `scripts/**`
-- [ ] T035 [US5] Write `README.md`: overview and safety model (cannot publish; delete guard relies on descriptions plus confirmation input and the server cannot verify who wrote an instruction — FR-025); "Deploy with Vercel" button using `https://vercel.com/new/clone?repository-url=…&env=…&envDescription=…&envLink=…` listing the required variables
-- [ ] T036 [US5] README section: create a Bluesky app password (Settings → App Passwords), never the main password, how to revoke it; link sources
-- [ ] T037 [US5] README section: create the GitHub OAuth app (homepage, callback `{BASE_URL}/auth/callback`), find your numeric GitHub user ID, set `ALLOWED_GITHUB_USER_IDS`; link FastMCP's GitHub integration docs
-- [ ] T038 [US5] README section: deploy securely to Vercel — add Upstash Redis from the Vercel Marketplace, generate `JWT_SIGNING_KEY` and `STORAGE_ENCRYPTION_KEY`, store every Secret from contracts/configuration.md as a Vercel Secret environment variable (link Vercel's docs saying Secret values are write-only), keep Standard Deployment Protection
-- [ ] T039 [US5] README section: IP allowlist — default `160.79.104.0/21`, link Anthropic's IP address page, list the exempt sign-in routes and why, explain `UNSAFE_DISABLE_*` as reducing security
-- [ ] T040 [US5] README section: add the Claude custom connector (`{BASE_URL}/mcp`, sign in with GitHub, approve consent); link Anthropic's custom connector article stating connector credentials are stored encrypted; note it works on web, mobile, and scheduled tasks
-- [ ] T041 [US5] Deploy to Vercel production and run quickstart steps 4–5 (outside-IP 403s, owner sign-in shows tools, second GitHub account sees none); fix any discovered exempt-path or redirect-URI mismatch in settings defaults and contracts/http-routes.md
+- [X] T034 [P] [US5] Add `vercel.json` (`$schema` only) and a `.vercelignore` excluding `tests/`, `specs/`, `.specify/`, `.claude/`, `.pmd/`, `.github/`, `scripts/` (a `functions` key was dropped because its path form for a `src/` package entrypoint is not documented)
+- [X] T035 [US5] Write `README.md`: overview and safety model (cannot publish; delete guard relies on descriptions plus confirmation input and the server cannot verify who wrote an instruction — FR-025); "Deploy with Vercel" button using `https://vercel.com/new/clone?repository-url=…&env=…&envDescription=…&envLink=…` listing the required variables
+- [X] T036 [US5] README section: create a Bluesky app password (Settings → App Passwords), never the main password, how to revoke it; link sources
+- [X] T037 [US5] README section: create the GitHub OAuth app (homepage, callback `{BASE_URL}/auth/callback`), find your numeric GitHub user ID, set `ALLOWED_GITHUB_USER_IDS`; link FastMCP's GitHub integration docs
+- [X] T038 [US5] README section: deploy securely to Vercel — add Upstash Redis from the Vercel Marketplace, generate `JWT_SIGNING_KEY` and `STORAGE_ENCRYPTION_KEY`, store every Secret from contracts/configuration.md as a Vercel Secret environment variable (link Vercel's docs saying Secret values are write-only), keep Standard Deployment Protection
+- [X] T039 [US5] README section: IP allowlist — default `160.79.104.0/21`, link Anthropic's IP address page, list the exempt sign-in routes and why, explain `UNSAFE_DISABLE_*` as reducing security
+- [X] T040 [US5] README section: add the Claude custom connector (`{BASE_URL}/mcp`, sign in with GitHub, approve consent); link Anthropic's custom connector article stating connector credentials are stored encrypted; note it works on web, mobile, and scheduled tasks
+- [ ] T041 (owner setup pending) [US5] Deploy to Vercel production and run quickstart steps 4–5 (outside-IP 403s, owner sign-in shows tools, second GitHub account sees none); fix any discovered exempt-path or redirect-URI mismatch in settings defaults and contracts/http-routes.md
 
 **Checkpoint**: The P1 MVP (read + draft, securely deployed) is live.
 
