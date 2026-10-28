@@ -103,6 +103,7 @@ dependencies = [
     { name = "py-key-value-aio", extra = ["redis"] },
     { name = "pydantic-settings" },
     { name = "regex" },
+    { name = "starlette" },
 ]
 
 [package.dev-dependencies]
@@ -122,6 +123,7 @@ requires-dist = [
     { name = "py-key-value-aio", extras = ["redis"], specifier = ">=0.4.6" },
     { name = "pydantic-settings", specifier = ">=2.6" },
     { name = "regex", specifier = ">=2024.11.6" },
+    { name = "starlette", specifier = ">=0.40" },
 ]
 
 [package.metadata.requires-dev]
