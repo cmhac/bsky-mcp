@@ -174,7 +174,7 @@ GitHub account and an outside IP are refused (quickstart steps 4–5).
 preview, and merging deploys production (quickstart step 7).
 
 - [X] T046 [US6] Create `.github/workflows/ci.yml` on `pull_request` and `push` to `main`: checkout, `actions/setup-java` (Temurin 17+), `astral-sh/setup-uv`, cache `.pmd/` and pre-commit, `pre-commit run --all-files --show-diff-on-failure`, `uv run pytest`
-- [ ] T047 (owner: Vercel Git integration) [US6] Connect the repository to the Vercel project via the Git integration (previews per PR, production from `main`) and confirm a preview URL appears on this PR
+- [X] T047 [US6] (Vercel posts preview deployments on this PR; production deploy happens on merge) Connect the repository to the Vercel project via the Git integration (previews per PR, production from `main`) and confirm a preview URL appears on this PR
 - [ ] T048 (owner: depends on GitHub plan) [US6] Make CI a required check on `main` (branch protection or ruleset); if the account is on GitHub Free with a private repo, document in README that merge blocking needs GitHub Pro or a public repo (research R9)
 - [X] T049 [US6] Prove the gate: push a temporary commit with a ≥50-token duplicated block, confirm the `cpd` check fails locally and in CI, then revert
 
