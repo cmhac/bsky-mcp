@@ -56,7 +56,7 @@ IP, and configuration errors; at most 300 graphemes per draft post
 | VII. Continuous Delivery | Vercel previews per PR, prod on `main`, Deploy button | Pass | Pass (R10) |
 | Docs constraints | README covers all five required topics with source links | Pass | Pass ([quickstart.md](./quickstart.md)) |
 
-No violations requiring Complexity Tracking. Two items need the owner (see "Open items").
+No violations requiring Complexity Tracking. One item needs the owner (see "Open items").
 
 ## Project Structure
 
@@ -140,10 +140,7 @@ directly.
 
 ## Open items for the owner
 
-1. **Reply drafts** (blocks User Story 2, scenario 1): Bluesky's draft format has no reply-target
-   field. Recommended: Claude writes replies in chat with the parent link (Option C in
-   [research.md](./research.md#open-decision-for-the-owner-reply-drafts)). The spec will be updated
-   once the owner chooses.
+1. ~~Reply drafts~~: resolved, owner chose Option C (no stored reply drafts; spec FR-004a).
 2. **Merge blocking on a private repo**: requires GitHub Pro, or making the repo public (R9).
 
 ## Complexity Tracking

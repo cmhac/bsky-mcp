@@ -27,6 +27,9 @@ credentials are stored encrypted."
 - Q: Are likes and reposts in scope, and can they be undone? → A: Yes to both.
 - Q: Can the server delete posts? → A: Yes, the owner's own posts, only with the owner's explicit
   permission, enforced by tool guidance and a confirmation input.
+- Q: Bluesky's draft format has no reply-target field. How should replies be drafted? → A: Not
+  stored. Claude writes the reply in chat with a link to the parent post, and the owner replies from
+  a Bluesky app. Revisit if Bluesky adds reply targets to drafts.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -53,11 +56,12 @@ summarize the owner's latest notifications. The answer matches what the Bluesky 
 
 ---
 
-### User Story 2 - Draft posts and replies into my Bluesky Drafts (Priority: P1)
+### User Story 2 - Draft posts into my Bluesky Drafts (Priority: P1)
 
-The owner asks Claude to write a post or a reply. Claude saves it to the owner's Bluesky Drafts and
+The owner asks Claude to write a post or a thread. Claude saves it to the owner's Bluesky Drafts and
 shows the owner what it wrote. Nothing is published. The owner can revise it with Claude, or open
-it in a Bluesky app and publish it themselves.
+it in a Bluesky app and publish it themselves. When the owner asks for a reply, Claude writes it in
+chat with a link to the post being replied to, because Bluesky drafts cannot record a reply target.
 
 **Why this priority**: Drafting is the main reason to give Claude write access, and it cannot publish
 by design.
@@ -68,8 +72,9 @@ public profile.
 
 **Acceptance Scenarios**:
 
-1. **Given** the owner says "write a reply to this post," **When** Claude acts, **Then** a draft
-   reply to that post appears in the owner's Bluesky Drafts and no public reply exists.
+1. **Given** the owner says "write a reply to this post," **When** Claude acts, **Then** Claude
+   shows the reply text in chat with the parent post's link, nothing is stored, and no public reply
+   exists.
 2. **Given** a saved draft, **When** the owner asks for changes, **Then** the same draft is updated
    rather than a second draft created.
 3. **Given** draft text longer than Bluesky allows, **When** Claude tries to save it, **Then** the
@@ -205,9 +210,12 @@ blocks merging. Fix it; checks pass, a preview deploys, and merging deploys prod
 
 **Drafting (no publishing)**
 
-- **FR-004**: The server MUST provide tools to create a draft post or reply, update an existing
+- **FR-004**: The server MUST provide tools to create a draft post or thread, update an existing
   draft, and list the owner's drafts. Drafts MUST be saved in the owner's Bluesky Drafts so they
   appear in the Bluesky app.
+- **FR-004a**: The server MUST NOT store reply drafts. Tool descriptions and server instructions
+  MUST direct Claude, when asked for a reply, to present the reply text in chat with a link to the
+  parent post.
 - **FR-005**: The server MUST NOT be able to publish a post or reply by any tool, setting, or code
   path, and tests MUST fail if a publishing path becomes reachable.
 - **FR-006**: Draft tool descriptions and the server's instructions to Claude MUST say that the
@@ -276,8 +284,7 @@ blocks merging. Fix it; checks pass, a preview deploys, and merging deploys prod
 
 - **Owner**: The single person whose Bluesky account the server acts on and whose GitHub account is
   allowlisted.
-- **Draft**: An unpublished post or reply in the owner's Bluesky Drafts, optionally linked to a
-  parent post.
+- **Draft**: An unpublished post or thread in the owner's Bluesky Drafts.
 - **Post**: A published Bluesky post, with link, text, author, time, and engagement counts.
 - **Engagement record**: A follow, like, or repost owned by the owner, which can be created or undone.
 - **Allowlists**: The GitHub accounts permitted to sign in and the IP ranges permitted to reach the
@@ -294,7 +301,8 @@ blocks merging. Fix it; checks pass, a preview deploys, and merging deploys prod
 - **SC-002**: Read requests return results to Claude in under 5 seconds in 95% of cases under normal
   Bluesky conditions.
 - **SC-003**: Across at least 20 test prompts asking Claude to write, compose, or post, zero result in
-  a published post, and every one results in a draft visible in the Bluesky app.
+  a published post; every non-reply request results in a draft visible in the Bluesky app, and every
+  reply request results in reply text in chat with the parent link.
 - **SC-004**: Across at least 10 test cases where a skill, scheduled task, or post content says to
   delete a post, zero posts are deleted.
 - **SC-005**: 100% of requests from a non-allowlisted GitHub account, or from a non-allowlisted IP,

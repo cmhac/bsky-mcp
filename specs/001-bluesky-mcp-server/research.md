@@ -96,8 +96,7 @@ atproto 0.0.73, py-key-value-aio 0.4.6, Spec Kit 1.2.4, PMD 7.28.0.
   - A draft holds 1–100 posts, so threads are representable. Each draft post supports text (up to
     10,000 characters), one external link card, one quoted record, and media.
   - **There is no reply-target field in the draft schema.** A Bluesky draft cannot record which post
-    it replies to. This conflicts with spec User Story 2 ("draft reply to that post"). See
-    "Open decision" below.
+    it replies to. This conflicted with the original spec User Story 2; resolved below.
   - Bluesky [added drafts in February 2026](https://techcrunch.com/2026/02/09/bluesky-finally-adds-drafts).
     Whether an **app password** may call the draft endpoints is not documented anywhere I could find;
     the first implementation task is a smoke test against the real account.
@@ -105,7 +104,7 @@ atproto 0.0.73, py-key-value-aio 0.4.6, Spec Kit 1.2.4, PMD 7.28.0.
   [300 graphemes](https://raw.githubusercontent.com/bluesky-social/atproto/main/lexicons/app/bsky/feed/post.json).
   The server validates each draft post at 300 graphemes so drafts are publishable as-is (spec FR-007).
 
-### Open decision for the owner: reply drafts
+### Decision: reply drafts
 
 Bluesky's draft format has no field for "this is a reply to post X." Options:
 
@@ -115,8 +114,7 @@ Bluesky's draft format has no field for "this is a reply to post X." Options:
 | B | Reply drafts are kept on the server (encrypted, in the same store) and listed by `list_drafts`; Claude shows the text and the parent link | Keeps the reply target, but not visible in the Bluesky app |
 | C | No stored reply drafts: Claude writes the reply in chat with a link to the parent post | Simplest; nothing to clean up |
 
-Recommended: **C**, revisiting if Bluesky adds reply targets to drafts. The plan proceeds with C
-pending the owner's answer; changing to A or B affects only the draft tools.
+**Resolved 2026-10-28: the owner chose C.** Revisit if Bluesky adds reply targets to drafts.
 
 ## R7. Allowed operations wrapper
 

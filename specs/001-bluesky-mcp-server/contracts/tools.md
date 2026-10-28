@@ -11,7 +11,8 @@ Tool annotations follow the MCP hints: `readOnlyHint`, `destructiveHint`, `idemp
 
 Must state, in plain language:
 
-1. This server cannot publish posts or replies. When asked to write, compose, or post anything,
+1. This server cannot publish posts or replies. When asked for a reply, write it in chat with a link
+   to the parent post; do not save it as a draft. When asked to write, compose, or post anything else,
    save a draft with `create_draft` (or revise with `update_draft`) and tell the owner to publish it
    from a Bluesky app.
 2. `delete_post` may be used only when the owner has explicitly asked, in their own chat message, to
@@ -42,11 +43,11 @@ Must state, in plain language:
 | `update_draft` | `draft_id`, `posts` (same shape), `langs` | Updated draft, re-read from Bluesky | Same as create; `draft_not_found` if the re-read does not find it |
 | `list_drafts` | `limit` (1–100, default 25), `cursor` | Draft list (id, first post preview, post count, timestamps) + next cursor | — |
 
-Description of `create_draft` MUST say: use this for any request to write, compose, draft, reply,
-or post; this server cannot publish.
+Description of `create_draft` MUST say: use this for any request to write, compose, draft, or post
+(except replies, which go in chat); this server cannot publish.
 
-Reply handling depends on the open owner decision in [research.md](../research.md); under the
-recommended option the draft tools do not accept a reply target.
+Draft tools do not accept a reply target (spec FR-004a). The `create_draft` description and the
+server instructions tell Claude to write replies in chat with the parent post's link instead.
 
 ## Engagement tools (`destructiveHint: false`, `idempotentHint: true`)
 
