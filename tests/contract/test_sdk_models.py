@@ -24,7 +24,9 @@ PROFILE = {"did": OTHER_DID, "handle": "other.bsky.social", "displayName": "Othe
 
 
 def _client(routes: dict[str, Any]) -> SafeBlueskyClient:
-    return SafeBlueskyClient(OWNER_HANDLE, "pw", "https://bsky.social", request=RecordingRequest(routes))
+    return SafeBlueskyClient(
+        OWNER_HANDLE, "pw", "https://bsky.social", request=RecordingRequest(routes)
+    )
 
 
 @pytest.mark.parametrize(
