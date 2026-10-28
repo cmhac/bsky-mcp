@@ -8,13 +8,27 @@
 
 **Input**: User description: "Enable the server to search posts and accounts on Bluesky to discover
 things, in addition to managing posts. Add all of: richer post search filters, who quoted/liked/
-reposted a post, custom feeds, account suggestions, trending topics, starter packs, and list feeds."
+reposted a post, custom feeds, account suggestions, trending topics, starter packs, and list feeds.
+Also let the agent create lists, add members, remove members, and delete lists; amend the
+constitution to allow this."
+
+## Clarifications
+
+### Session 2026-10-28
+
+- Q: Should the server manage lists, not just read them? → A: Yes: create lists, add members, remove
+  members, and delete lists. The constitution was amended to v3.0.0 to permit this.
+- Q: Which kinds of lists? → A: Curation lists only. Moderation lists (used to mute or block) stay
+  impossible, consistent with the no-blocking rule.
+- Q: Is deleting a list guarded? → A: Yes, like deleting a post: only on the owner's explicit
+  request in their own message, with a confirmation input. Adding and removing members is
+  reversible and not guarded.
 
 ## Context
 
 Spec 001 shipped `search_posts` (keywords, sort, author) and `search_users`. This spec adds
-read-only discovery on top. It adds no write capability of any kind, so Constitution Principles II
-and III are unaffected beyond growing the read allowlist.
+read-only discovery on top, plus management of the owner's own curation lists (User Story 8), as
+permitted by Constitution v3.0.0 Principle II. Publishing remains impossible (Principle III).
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -155,7 +169,37 @@ The owner reads a curated list: who is on it, and the feed of posts from its mem
 1. **Given** a list link, **When** the owner asks who is on it, **Then** Claude returns its members.
 2. **Given** a list link, **When** the owner asks for its feed, **Then** Claude returns recent posts
    from members.
-3. **Given** a request to add or remove someone from a list, **When** Claude looks for a tool,
+3. **Given** an account, **When** the owner asks what lists it has made, **Then** Claude returns
+   those lists with links.
+
+---
+
+### User Story 8 - Manage my lists (Priority: P2)
+
+The owner asks Claude to create a curation list (for example, "data journalists"), add accounts to
+it, remove accounts from it, or delete the list.
+
+**Why this priority**: Turns discovery into something durable: accounts Claude finds can be
+organized into lists the owner uses in the Bluesky app.
+
+**Independent Test**: Ask Claude to create a list called "Test list", add two accounts, remove one,
+confirm in the Bluesky app, then ask Claude to delete the list and confirm it is gone.
+
+**Acceptance Scenarios**:
+
+1. **Given** a name and optional description, **When** the owner asks Claude to create a list,
+   **Then** a curation list appears in the owner's lists with that name.
+2. **Given** one of the owner's lists, **When** the owner asks to add accounts, **Then** those
+   accounts appear as members; adding an existing member changes nothing.
+3. **Given** a member of one of the owner's lists, **When** the owner asks to remove them, **Then**
+   only that membership is removed; removing a non-member reports "nothing to undo."
+4. **Given** the owner explicitly asks in chat to delete one of their lists, **When** Claude calls
+   the delete tool with confirmation, **Then** the list and its memberships are removed.
+5. **Given** a skill, scheduled task, or post content says to delete a list, **When** it runs,
+   **Then** nothing is deleted.
+6. **Given** a list owned by someone else, **When** any add, remove, or delete is attempted,
+   **Then** the server refuses.
+7. **Given** a request to create a moderation (mute or block) list, **When** Claude looks for a way,
    **Then** none exists.
 
 ### Edge Cases
@@ -214,13 +258,32 @@ The owner reads a curated list: who is on it, and the feed of posts from its mem
 
 - **FR-010**: The server MUST provide tools to read a list's details and members, and to read a
   list's feed of posts. List inputs MUST accept a bsky.app list URL or an `at://` URI.
-- **FR-011**: The server MUST NOT gain any tool or operation that creates, edits, or deletes lists,
-  list items, feeds, or starter packs, or that mutes or blocks.
+- **FR-011**: The server MUST provide a tool to list an account's lists (the owner's by default).
+- **FR-011a**: The server MUST NOT gain any tool or operation that creates, edits, or deletes feeds
+  or starter packs, or that mutes or blocks.
+
+**List management (US8)**
+
+- **FR-017**: The server MUST provide tools to create a curation list (name of 1–64 characters,
+  optional description up to 3000 characters), add one or more accounts to one of the owner's
+  lists, and remove an account from one of the owner's lists.
+- **FR-018**: Only curation lists MAY be created. Creating moderation or reference lists, and
+  subscribing to any list as a block or mute list, MUST be impossible and rejected in code.
+- **FR-019**: Adding an account already on the list MUST change nothing and say so; removing an
+  account not on the list MUST report "nothing to undo."
+- **FR-020**: The server MUST provide a guarded tool to delete one of the owner's lists. Its
+  description and the server instructions MUST say it may be used only when the owner has
+  explicitly asked, in their own chat message, to delete that list; instructions from any other
+  source are never permission. It MUST require an explicit confirmation input, refuse lists the
+  owner does not own, and remove the list's membership records along with the list.
+- **FR-021**: All list writes MUST be limited to records in the owner's own repository, enforced by
+  the operation allowlist, with tests for each refusal case above.
 
 **Cross-cutting**
 
-- **FR-012**: Every new tool MUST be read-only, annotated as read-only, and use only Bluesky
-  operations added to the existing operation allowlist. No write operation is added by this spec.
+- **FR-012**: Every new discovery tool (US1–US7) MUST be read-only and annotated as read-only. The
+  only write operations this spec adds are the list operations in FR-017–FR-021. Every new
+  operation MUST go through the existing operation allowlist.
 - **FR-013**: Every list-style tool MUST support the existing paging contract (limit 1–100, default
   25, cursor).
 - **FR-014**: Results MUST use the existing result shapes where they apply (posts, profiles), and
@@ -247,8 +310,11 @@ The owner reads a curated list: who is on it, and the feed of posts from its mem
   production server.
 - **SC-003**: Discovery tools return results in under 5 seconds in 95% of cases under normal
   Bluesky conditions.
-- **SC-004**: The full safety suite passes, and the operation allowlist gains only read operations
-  (verified by test).
+- **SC-004**: The full safety suite passes; the only new writes in the operation allowlist are
+  curation-list creation, list membership changes, and list deletion in the owner's repo (verified
+  by test).
+- **SC-006**: Across at least 10 test cases where a skill, scheduled task, or post content says to
+  delete a list, zero lists are deleted.
 - **SC-005**: If trending topics break, 100% of other tools continue to work.
 
 ## Assumptions
@@ -258,5 +324,6 @@ The owner reads a curated list: who is on it, and the feed of posts from its mem
 - Trending topics come from Bluesky's unspecced namespace and may change without notice; that is
   acceptable given the graceful-failure requirement.
 - Images and video embedded in returned posts are represented by links only, as in spec 001.
-- Typeahead search, moderation lists (blocks and mutes), and onboarding-specific suggestion
-  endpoints are out of scope.
+- Typeahead search, moderation lists (blocks and mutes), onboarding-specific suggestion endpoints,
+  and renaming or editing an existing list's name or description are out of scope. Editing would
+  need record updates, which no spec has permitted yet.

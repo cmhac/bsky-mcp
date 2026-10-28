@@ -31,8 +31,9 @@
 
 ## Notes
 
-- The owner asked for every discovery capability offered, so no scope clarifications were needed.
+- The owner asked for every discovery capability offered, plus list management (create, add,
+  remove, delete). Clarifications are recorded in the spec; the constitution was amended to v3.0.0.
 - Trending topics are included with a graceful-failure requirement (FR-007) because the underlying
   endpoint is not part of Bluesky's stable API.
-- Out of scope: typeahead search, moderation lists, onboarding-only suggestion endpoints, and any
-  list, feed, or starter pack management.
+- Out of scope: typeahead search, moderation lists, onboarding-only suggestion endpoints, list renaming, and
+  any feed or starter pack management.
