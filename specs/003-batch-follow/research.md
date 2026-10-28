@@ -59,7 +59,7 @@ would double-follow a repeated entry or a handle plus the DID of the same accoun
 
 ## R5. Shared batch validation (CPD)
 
-**Decision**: Move the 1-25 check from `lists.py` into a shared helper in `bluesky/core.py`
+**Decision**: Move the 1-25 check from `lists.py` into a shared helper in `bluesky/text.py`
 (`MAX_ACTORS_PER_CALL`, `validate_actor_batch(actors, verb)`), and define one `ActorBatch`
 annotated type in `tools/__init__.py` used by both `add_to_list` and `follow`.
 
