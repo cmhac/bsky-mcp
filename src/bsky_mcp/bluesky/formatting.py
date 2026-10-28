@@ -326,6 +326,18 @@ class TrendingPage(BaseModel):
     topics: list[TrendingTopic]
 
 
+class FollowResult(BaseModel):
+    actor: str
+    status: str
+    handle: str | None = None
+    record_uri: str | None = None
+    message: str | None = None
+
+
+class FollowResults(BaseModel):
+    results: list[FollowResult]
+
+
 class ListMembershipResult(BaseModel):
     actor: str
     status: str

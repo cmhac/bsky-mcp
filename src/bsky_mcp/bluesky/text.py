@@ -32,6 +32,15 @@ class TooLongError(ValueError):
     code = "too_long"
 
 
+MAX_ACTORS_PER_CALL = 25
+
+
+def validate_actor_batch(actors: list[str]) -> None:
+    """Shared by add_to_list and follow: 1-25 accounts per call, refused before any request."""
+    if not 1 <= len(actors) <= MAX_ACTORS_PER_CALL:
+        raise InvalidInputError(f"Provide between 1 and {MAX_ACTORS_PER_CALL} accounts at a time.")
+
+
 def count_graphemes(text: str) -> int:
     return len(regex.findall(r"\X", text))
 

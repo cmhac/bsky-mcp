@@ -23,6 +23,10 @@ PostId = Annotated[
     str, Field(description="A bsky.app post URL or an at:// URI of an app.bsky.feed.post record.")
 ]
 Actor = Annotated[str, Field(description="A Bluesky handle (with or without @) or a DID.")]
+ActorBatch = Annotated[
+    list[str],
+    Field(min_length=1, max_length=25, description="1-25 handles (with or without @) or DIDs."),
+]
 
 READ_ONLY = {"readOnlyHint": True, "openWorldHint": True}
 DESTRUCTIVE = {"readOnlyHint": False, "destructiveHint": True, "openWorldHint": True}

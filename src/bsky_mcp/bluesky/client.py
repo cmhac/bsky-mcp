@@ -36,6 +36,7 @@ from bsky_mcp.bluesky.text import (
     parse_actor,
     parse_https_url,
     parse_post,
+    validate_actor_batch,
     validate_date_range,
     validate_post_text,
 )
@@ -93,7 +94,7 @@ class BlueskyAPI(DiscoveryAPI, ListsAPI, Protocol):
         self, draft_id: str, posts: list[DraftPostInput], langs: list[str] | None
     ) -> fmt.DraftView: ...
     async def list_drafts(self, limit: int, cursor: str | None) -> fmt.DraftPage: ...
-    async def follow(self, actor: str) -> fmt.EngagementResult: ...
+    async def follow(self, actors: list[str]) -> fmt.FollowResults: ...
     async def unfollow(self, actor: str) -> fmt.EngagementResult: ...
     async def like(self, post: str) -> fmt.EngagementResult: ...
     async def unlike(self, post: str) -> fmt.EngagementResult: ...
@@ -183,7 +184,7 @@ def _translate_error(exc: RequestErrorBase) -> BlueskyError:
         return BlueskyError("invalid_input", message or "Bluesky rejected the request.")
     status = exc.response.status_code if exc.response is not None else None
     if status == 429:
-        return BlueskyError("bluesky_unavailable", "Bluesky rate limit reached. Try again later.")
+        return BlueskyError("rate_limited", "Bluesky rate limit reached. Try again later.")
     return BlueskyError("bluesky_unavailable", "Bluesky returned an error. Try again later.")
 
 
@@ -495,14 +496,54 @@ class SafeBlueskyClient(DiscoveryMixin, ListsMixin):
         profile = await self._call(lambda c: c.app.bsky.actor.get_profile(params))
         return profile, fmt._get(profile.viewer, "following")
 
-    async def follow(self, actor: str) -> fmt.EngagementResult:
-        profile, existing = await self._follow_state(actor)
-        if existing:
-            return _result("follow", profile.handle, existing, False, "Already following.")
+    async def _follow_one(self, actor: str, handled: dict[str, str | None]) -> fmt.FollowResult:
+        """Follow one account. ``handled`` maps DIDs already dealt with in this call to the
+        follow record, because the profile's viewer state can lag a follow created a moment ago."""
+        try:
+            profile, existing = await self._follow_state(actor)
+        except InvalidInputError:
+            return fmt.FollowResult(actor=actor, status="not_found")
+        handle = profile.handle
+        if profile.did == await self._own_did():
+            return fmt.FollowResult(
+                actor=actor, status="is_you", handle=handle, message="You can't follow yourself."
+            )
+        if profile.did in handled or existing:
+            return fmt.FollowResult(
+                actor=actor,
+                status="already_following",
+                handle=handle,
+                record_uri=handled.get(profile.did) or existing,
+            )
         uri = await self._create(
             ops.FOLLOW, models.AppBskyGraphFollow.Record(subject=profile.did, created_at=_now())
         )
-        return _result("follow", profile.handle, uri, True, "Followed.")
+        handled[profile.did] = uri
+        return fmt.FollowResult(actor=actor, status="followed", handle=handle, record_uri=uri)
+
+    async def follow(self, actors: list[str]) -> fmt.FollowResults:
+        validate_actor_batch(actors)
+        handled: dict[str, str | None] = {}
+        results: list[fmt.FollowResult] = []
+        for actor in actors:
+            try:
+                results.append(await self._follow_one(actor, handled))
+            except BlueskyError as exc:
+                if exc.code == "not_found":
+                    results.append(fmt.FollowResult(actor=actor, status="not_found"))
+                elif exc.code == "rate_limited":
+                    results.extend(
+                        fmt.FollowResult(actor=left, status="not_attempted", message=exc.message)
+                        for left in [actor, *actors[len(results) + 1 :]]
+                    )
+                    break
+                elif exc.code in ("bluesky_auth_failed", "not_configured"):
+                    raise
+                else:
+                    results.append(
+                        fmt.FollowResult(actor=actor, status="failed", message=exc.message)
+                    )
+        return fmt.FollowResults(results=results)
 
     async def unfollow(self, actor: str) -> fmt.EngagementResult:
         profile, existing = await self._follow_state(actor)

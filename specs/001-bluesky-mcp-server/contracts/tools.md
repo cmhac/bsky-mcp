@@ -53,7 +53,7 @@ server instructions tell Claude to write replies in chat with the parent post's 
 
 | Tool | Inputs | Behavior |
 | --- | --- | --- |
-| `follow` | `actor` | Creates a follow record; returns existing record if already following |
+| `follow` | `actors` (1–25) | Superseded by spec 003: follows each account, per-account result; skips ones already followed |
 | `unfollow` | `actor` | Deletes the owner's follow record for that actor; "nothing to undo" if none |
 | `like` | `post` | Creates a like; returns existing if already liked |
 | `unlike` | `post` | Deletes the owner's like on that post; "nothing to undo" if none |

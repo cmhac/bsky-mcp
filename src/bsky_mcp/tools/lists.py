@@ -9,7 +9,15 @@ from pydantic import Field
 
 from bsky_mcp import instructions
 from bsky_mcp.bluesky import formatting as fmt
-from bsky_mcp.tools import DESTRUCTIVE, Actor, ApiProvider, Confirm, require_confirmation, run
+from bsky_mcp.tools import (
+    DESTRUCTIVE,
+    Actor,
+    ActorBatch,
+    ApiProvider,
+    Confirm,
+    require_confirmation,
+    run,
+)
 from bsky_mcp.tools.discovery import ListId
 
 LIST_WRITE = {"readOnlyHint": False, "destructiveHint": False, "openWorldHint": True}
@@ -30,10 +38,7 @@ def register(mcp: FastMCP, api: ApiProvider) -> None:
     @mcp.tool(annotations=REVERSIBLE)
     async def add_to_list(
         list: ListId,  # noqa: A002
-        actors: Annotated[
-            list[str],
-            Field(min_length=1, max_length=25, description="1-25 handles or DIDs to add."),
-        ],
+        actors: ActorBatch,
     ) -> fmt.ListMembershipResults:
         """Add accounts to one of the user's lists. Accounts already on it are left as they are."""
         return await run(api().add_to_list(list, actors))

@@ -19,7 +19,7 @@ from bsky_mcp.bluesky.client import (
     validate_draft_posts,
 )
 from bsky_mcp.bluesky.core import SearchFilters, SortOrder
-from bsky_mcp.bluesky.text import parse_actor, parse_post
+from bsky_mcp.bluesky.text import parse_actor, parse_post, validate_actor_batch
 from bsky_mcp.server import create_server
 from tests.fake_discovery import FakeDiscovery
 
@@ -241,11 +241,15 @@ class FakeBluesky(FakeDiscovery):
         msg = "Done." if changed else "Nothing to undo." if action.startswith("un") else "Already."
         return fmt.EngagementResult(action=action, subject=subject, changed=changed, message=msg)
 
-    async def follow(self, actor: str) -> fmt.EngagementResult:
-        handle = self._profile(actor).handle
-        changed = handle not in self.following
-        self.following.add(handle)
-        return self._result("follow", handle, changed)
+    async def follow(self, actors: list[str]) -> fmt.FollowResults:
+        validate_actor_batch(actors)
+        results = []
+        for actor in actors:
+            handle = self._profile(actor).handle
+            status = "followed" if handle not in self.following else "already_following"
+            self.following.add(handle)
+            results.append(fmt.FollowResult(actor=actor, status=status, handle=handle))
+        return fmt.FollowResults(results=results)
 
     async def unfollow(self, actor: str) -> fmt.EngagementResult:
         handle = self._profile(actor).handle

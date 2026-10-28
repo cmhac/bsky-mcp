@@ -6,13 +6,14 @@ from typing import Any
 
 from bsky_mcp.bluesky import formatting as fmt
 from bsky_mcp.bluesky.core import BlueskyError
-from bsky_mcp.bluesky.lists import validate_actor_batch, validate_list_fields
+from bsky_mcp.bluesky.lists import validate_list_fields
 from bsky_mcp.bluesky.text import (
     FEED_COLLECTION,
     LIST_COLLECTION,
     STARTER_PACK_COLLECTION,
     parse_actor,
     parse_record_link,
+    validate_actor_batch,
 )
 
 OWNER_DID = "did:plc:owner"
