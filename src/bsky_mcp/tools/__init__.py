@@ -11,6 +11,9 @@ from pydantic import Field
 from bsky_mcp.bluesky.client import BlueskyAPI, BlueskyError
 from bsky_mcp.bluesky.operations import ForbiddenOperationError
 from bsky_mcp.bluesky.text import InvalidInputError, TooLongError
+from bsky_mcp.logging import get_logger
+
+_logger = get_logger("tools")
 
 ApiProvider = Callable[[], BlueskyAPI]
 
@@ -49,3 +52,6 @@ async def run[T](call: Awaitable[T]) -> T:
         raise ToolError(f"{exc.code}: {exc}") from None
     except ForbiddenOperationError as exc:
         raise ToolError(f"{exc.code}: {exc}") from None
+    except Exception as exc:
+        _logger.exception("unexpected error in tool call")
+        raise ToolError(f"internal_error: {type(exc).__name__}") from None
