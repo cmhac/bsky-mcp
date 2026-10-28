@@ -154,13 +154,13 @@ GitHub account and an outside IP are refused (quickstart steps 4–5).
 
 ### Tests for User Story 3
 
-- [ ] T042 [P] [US3] Contract tests in `tests/contract/test_engagement_tools.py`: `follow`/`like`/`repost` are idempotent (return the existing record); `unfollow`/`unlike`/`unrepost` remove only the owner's record and return "nothing to undo" when none exists; annotations `destructiveHint: false`, `idempotentHint: true`
-- [ ] T043 [P] [US3] Safety test in `tests/safety/test_no_block.py`: no tool or client method can create or delete `app.bsky.graph.block` records; undo methods refuse record URIs outside the session DID's repo
+- [X] T042 [P] [US3] Contract tests in `tests/contract/test_engagement_tools.py`: `follow`/`like`/`repost` are idempotent (return the existing record); `unfollow`/`unlike`/`unrepost` remove only the owner's record and return "nothing to undo" when none exists; annotations `destructiveHint: false`, `idempotentHint: true`
+- [X] T043 [P] [US3] Safety test in `tests/safety/test_no_block.py`: no tool or client method can create or delete `app.bsky.graph.block` records; undo methods refuse record URIs outside the session DID's repo
 
 ### Implementation for User Story 3
 
-- [ ] T044 [US3] Add engagement methods to `SafeBlueskyClient` in `src/bsky_mcp/bluesky/client.py` (create/delete follow, like, repost; locate the owner's record via viewer state; enforce the session-DID repo check)
-- [ ] T045 [US3] Implement `follow`, `unfollow`, `like`, `unlike`, `repost`, `unrepost` in `src/bsky_mcp/tools/engagement.py`
+- [X] T044 [US3] Add engagement methods to `SafeBlueskyClient` in `src/bsky_mcp/bluesky/client.py` (create/delete follow, like, repost; locate the owner's record via viewer state; enforce the session-DID repo check)
+- [X] T045 [US3] Implement `follow`, `unfollow`, `like`, `unlike`, `repost`, `unrepost` in `src/bsky_mcp/tools/engagement.py`
 
 **Checkpoint**: US3 works independently of US2 and US4.
 
@@ -173,9 +173,9 @@ GitHub account and an outside IP are refused (quickstart steps 4–5).
 **Independent Test**: A PR with a 60-token duplicate fails CI; after fixing, it passes, gets a
 preview, and merging deploys production (quickstart step 7).
 
-- [ ] T046 [US6] Create `.github/workflows/ci.yml` on `pull_request` and `push` to `main`: checkout, `actions/setup-java` (Temurin 17+), `astral-sh/setup-uv`, cache `.pmd/` and pre-commit, `pre-commit run --all-files --show-diff-on-failure`, `uv run pytest`
-- [ ] T047 [US6] Connect the repository to the Vercel project via the Git integration (previews per PR, production from `main`) and confirm a preview URL appears on this PR
-- [ ] T048 [US6] Make CI a required check on `main` (branch protection or ruleset); if the account is on GitHub Free with a private repo, document in README that merge blocking needs GitHub Pro or a public repo (research R9)
+- [X] T046 [US6] Create `.github/workflows/ci.yml` on `pull_request` and `push` to `main`: checkout, `actions/setup-java` (Temurin 17+), `astral-sh/setup-uv`, cache `.pmd/` and pre-commit, `pre-commit run --all-files --show-diff-on-failure`, `uv run pytest`
+- [ ] T047 (owner: Vercel Git integration) [US6] Connect the repository to the Vercel project via the Git integration (previews per PR, production from `main`) and confirm a preview URL appears on this PR
+- [ ] T048 (owner: depends on GitHub plan) [US6] Make CI a required check on `main` (branch protection or ruleset); if the account is on GitHub Free with a private repo, document in README that merge blocking needs GitHub Pro or a public repo (research R9)
 - [ ] T049 [US6] Prove the gate: push a temporary commit with a ≥50-token duplicated block, confirm the `cpd` check fails locally and in CI, then revert
 
 **Checkpoint**: Delivery pipeline verified.
@@ -191,12 +191,12 @@ preview, and merging deploys production (quickstart step 7).
 
 ### Tests for User Story 4
 
-- [ ] T050 [P] [US4] Contract tests in `tests/contract/test_delete_tool.py`: `confirm` missing or not exactly `"delete"` → `confirmation_required` and no deletion; another author's post → `not_owner`; unknown post → `not_found`; success returns the deleted post's URL and text; annotation `destructiveHint: true`; description contains server instruction 2 verbatim
+- [X] T050 [P] [US4] Contract tests in `tests/contract/test_delete_tool.py`: `confirm` missing or not exactly `"delete"` → `confirmation_required` and no deletion; another author's post → `not_owner`; unknown post → `not_found`; success returns the deleted post's URL and text; annotation `destructiveHint: true`; description contains server instruction 2 verbatim
 
 ### Implementation for User Story 4
 
-- [ ] T051 [US4] Add `delete_own_post` to `SafeBlueskyClient` in `src/bsky_mcp/bluesky/client.py` (fetch post, verify author DID equals session DID, then `deleteRecord` for `app.bsky.feed.post`)
-- [ ] T052 [US4] Implement `delete_post(post, confirm)` in `src/bsky_mcp/tools/delete.py` with the description from `instructions.py`
+- [X] T051 [US4] Add `delete_own_post` to `SafeBlueskyClient` in `src/bsky_mcp/bluesky/client.py` (fetch post, verify author DID equals session DID, then `deleteRecord` for `app.bsky.feed.post`)
+- [X] T052 [US4] Implement `delete_post(post, confirm)` in `src/bsky_mcp/tools/delete.py` with the description from `instructions.py`
 
 **Checkpoint**: All six stories implemented.
 
