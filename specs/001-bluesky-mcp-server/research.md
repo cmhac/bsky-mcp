@@ -80,6 +80,8 @@ atproto 0.0.73, py-key-value-aio 0.4.6, Spec Kit 1.2.4, PMD 7.28.0.
   requests come from the owner's browser, not Anthropic. Claude's backend performs discovery,
   registration, and token exchange, and Anthropic says connectors are reached
   [from Anthropic's cloud](https://support.claude.com/en/articles/11175166-get-started-with-custom-connectors-using-remote-mcp).
+- **Confirmed**: Anthropic's [connector authentication docs](https://claude.com/docs/connectors/building/authentication)
+  say discovery requests come from the same `160.79.104.0/21` range as MCP traffic.
 - **Risk**: If any server-to-server step turns out to come from outside the published range, setup
   fails closed. **Mitigation**: denied requests are logged with path and IP (no secrets), and
   `IP_ALLOWLIST_EXEMPT_PATHS` lets the owner adjust exemptions without code changes. The quickstart

@@ -82,7 +82,8 @@ specs/001-bluesky-mcp-server/
 ```text
 src/bsky_mcp/
 ├── __init__.py
-├── app.py               # ASGI entrypoint: builds FastMCP server + http_app, exports `app`
+├── app.py               # ASGI entrypoint for Vercel: `app = create_app(get_settings())`
+├── server.py            # create_server / create_app factories (importable without env vars)
 ├── config.py            # Typed settings from env; fails closed on missing/invalid values
 ├── auth.py              # GitHubProvider setup, encrypted Redis storage, user-ID AuthMiddleware check
 ├── ip_allowlist.py      # ASGI middleware: trusted client IP, CIDR check, exempt paths
