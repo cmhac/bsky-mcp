@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
+from datetime import UTC, datetime
 
 import regex
 
@@ -85,3 +86,72 @@ def parse_https_url(value: str) -> str:
     if not candidate.startswith("https://") or any(ch.isspace() for ch in candidate):
         raise InvalidInputError("Links must be https URLs.")
     return candidate
+
+
+# -- spec 002: feed, list, and starter pack links; search dates ----------------------------------
+
+FEED_COLLECTION = "app.bsky.feed.generator"
+LIST_COLLECTION = "app.bsky.graph.list"
+STARTER_PACK_COLLECTION = "app.bsky.graph.starterpack"
+
+_RKEY = r"(?P<rkey>[A-Za-z0-9._:~-]+)"
+_ACTOR = r"(?P<actor>[^/\s]+)"
+_LINK_PATTERNS = {
+    FEED_COLLECTION: re.compile(rf"^https://bsky\.app/profile/{_ACTOR}/feed/{_RKEY}/?$"),
+    LIST_COLLECTION: re.compile(rf"^https://bsky\.app/profile/{_ACTOR}/lists/{_RKEY}/?$"),
+    STARTER_PACK_COLLECTION: re.compile(rf"^https://bsky\.app/starter-pack/{_ACTOR}/{_RKEY}/?$"),
+}
+_LINK_LABELS = {
+    FEED_COLLECTION: ("feed", "https://bsky.app/profile/name.bsky.social/feed/abc"),
+    LIST_COLLECTION: ("list", "https://bsky.app/profile/name.bsky.social/lists/abc"),
+    STARTER_PACK_COLLECTION: (
+        "starter pack",
+        "https://bsky.app/starter-pack/name.bsky.social/abc",
+    ),
+}
+
+
+@dataclass(frozen=True)
+class RecordRef:
+    """A feed, list, or starter pack identified by its creator and record key."""
+
+    actor: str
+    collection: str
+    rkey: str
+
+    def at_uri(self, did: str | None = None) -> str:
+        return f"at://{did or self.actor}/{self.collection}/{self.rkey}"
+
+
+def parse_record_link(value: str, collection: str) -> RecordRef:
+    """Parse a bsky.app link or an at:// URI for a feed, list, or starter pack."""
+    candidate = value.strip()
+    if match := _LINK_PATTERNS[collection].match(candidate):
+        return RecordRef(parse_actor(match["actor"]), collection, match["rkey"])
+    if (match := _AT_URI.match(candidate)) and match["collection"] == collection:
+        return RecordRef(parse_actor(match["repo"]), collection, match["rkey"])
+    label, example = _LINK_LABELS[collection]
+    raise InvalidInputError(f"Expected a {label} link like {example} or an at:// URI.")
+
+
+def parse_date_bound(value: str) -> datetime:
+    """Accept an ISO date (YYYY-MM-DD) or an ISO datetime; naive values are treated as UTC."""
+    try:
+        parsed = datetime.fromisoformat(value.strip())
+    except ValueError as exc:
+        raise InvalidInputError(
+            "Dates must be ISO 8601, like 2026-10-28 or 2026-10-28T14:00Z."
+        ) from exc
+    return parsed if parsed.tzinfo else parsed.replace(tzinfo=UTC)
+
+
+def validate_date_range(since: str | None, until: str | None) -> tuple[str | None, str | None]:
+    """Normalize search dates to ISO strings and require until to be after since."""
+    start = parse_date_bound(since) if since else None
+    end = parse_date_bound(until) if until else None
+    if start and end and end <= start:
+        raise InvalidInputError("The end date must be after the start date.")
+    return (
+        start.isoformat().replace("+00:00", "Z") if start else None,
+        end.isoformat().replace("+00:00", "Z") if end else None,
+    )

@@ -12,7 +12,7 @@ from bsky_mcp.bluesky.client import BlueskyAPI, SafeBlueskyClient
 from bsky_mcp.config import Settings
 from bsky_mcp.ip_allowlist import IPAllowlistMiddleware
 from bsky_mcp.logging import configure_logging
-from bsky_mcp.tools import ApiProvider, delete, drafts, engagement, read
+from bsky_mcp.tools import ApiProvider, delete, discovery, drafts, engagement, lists, read
 
 MCP_PATH = "/mcp"
 SERVER_NAME = "bsky-mcp"
@@ -27,7 +27,7 @@ def create_server(api: ApiProvider, auth=None, middleware: list | None = None) -
         middleware=middleware or [],
         mask_error_details=True,
     )
-    for module in (read, drafts, engagement, delete):
+    for module in (read, drafts, engagement, delete, discovery, lists):
         module.register(mcp, api)
     return mcp
 

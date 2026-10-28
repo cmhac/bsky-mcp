@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from atproto_client.exceptions import ModelFieldNotFoundError
 from pydantic import BaseModel
 
 POST_URL_TEMPLATE = "https://bsky.app/profile/{handle}/post/{rkey}"
@@ -19,7 +20,7 @@ def _get(obj: Any, name: str, default: Any = None) -> Any:
     if value is default and hasattr(obj, "__getitem__"):
         try:
             return obj[name]
-        except (KeyError, TypeError):
+        except (KeyError, TypeError, ModelFieldNotFoundError):
             return default
     return value
 
@@ -247,4 +248,156 @@ def to_draft(draft_view: Any) -> DraftView:
         posts=posts,
         created_at=_get(draft_view, "created_at"),
         updated_at=_get(draft_view, "updated_at"),
+    )
+
+
+# -- spec 002: discovery and list models --------------------------------------------------------
+
+BSKY_APP = "https://bsky.app"
+
+
+class FeedView(BaseModel):
+    uri: str
+    url: str
+    name: str
+    creator_handle: str
+    description: str | None = None
+    like_count: int | None = None
+    is_online: bool | None = None
+    is_valid: bool | None = None
+
+
+class FeedPage(BaseModel):
+    feeds: list[FeedView]
+    cursor: str | None = None
+
+
+class ListInfo(BaseModel):
+    uri: str
+    url: str
+    name: str
+    purpose: str
+    creator_handle: str
+    description: str | None = None
+    member_count: int | None = None
+
+
+class ListPage(BaseModel):
+    lists: list[ListInfo]
+    cursor: str | None = None
+
+
+class ListDetail(BaseModel):
+    list: ListInfo
+    members: list[ProfileView]
+    cursor: str | None = None
+
+
+class StarterPackInfo(BaseModel):
+    uri: str
+    url: str
+    name: str
+    creator_handle: str
+    description: str | None = None
+    joined_week_count: int | None = None
+    joined_all_time_count: int | None = None
+
+
+class StarterPackPage(BaseModel):
+    starter_packs: list[StarterPackInfo]
+    cursor: str | None = None
+
+
+class StarterPackDetail(BaseModel):
+    starter_pack: StarterPackInfo
+    list_url: str | None = None
+    members: list[ProfileView]
+    cursor: str | None = None
+
+
+class TrendingTopic(BaseModel):
+    topic: str
+    display_name: str | None = None
+    description: str | None = None
+    url: str
+
+
+class TrendingPage(BaseModel):
+    topics: list[TrendingTopic]
+
+
+class ListMembershipResult(BaseModel):
+    actor: str
+    status: str
+
+
+class ListMembershipResults(BaseModel):
+    list_url: str
+    results: list[ListMembershipResult]
+
+
+class DeletedList(BaseModel):
+    deleted: bool
+    url: str
+    name: str
+    members_removed: int
+
+
+def _creator_handle(view: Any) -> str:
+    return _get(_get(view, "creator"), "handle", "unknown")
+
+
+def to_feed(view: Any, is_online: bool | None = None, is_valid: bool | None = None) -> FeedView:
+    uri = _get(view, "uri", "")
+    handle = _creator_handle(view)
+    return FeedView(
+        uri=uri,
+        url=f"{BSKY_APP}/profile/{handle}/feed/{rkey_of(uri)}",
+        name=_get(view, "display_name", "") or "",
+        creator_handle=handle,
+        description=_get(view, "description"),
+        like_count=_get(view, "like_count"),
+        is_online=is_online,
+        is_valid=is_valid,
+    )
+
+
+def to_list(view: Any) -> ListInfo:
+    uri = _get(view, "uri", "")
+    handle = _creator_handle(view)
+    return ListInfo(
+        uri=uri,
+        url=f"{BSKY_APP}/profile/{handle}/lists/{rkey_of(uri)}",
+        name=_get(view, "name", "") or "",
+        purpose=str(_get(view, "purpose", "")).rsplit("#", 1)[-1],
+        creator_handle=handle,
+        description=_get(view, "description"),
+        member_count=_get(view, "list_item_count"),
+    )
+
+
+def to_starter_pack(view: Any) -> StarterPackInfo:
+    uri = _get(view, "uri", "")
+    handle = _creator_handle(view)
+    record = _get(view, "record")
+    return StarterPackInfo(
+        uri=uri,
+        url=f"{BSKY_APP}/starter-pack/{handle}/{rkey_of(uri)}",
+        name=_get(record, "name", "") or "",
+        creator_handle=handle,
+        description=_get(record, "description"),
+        joined_week_count=_get(view, "joined_week_count"),
+        joined_all_time_count=_get(view, "joined_all_time_count"),
+    )
+
+
+def to_trending(topic: Any) -> TrendingTopic:
+    link = str(_get(topic, "link", "") or "")
+    return TrendingTopic(
+        topic=_get(topic, "topic", ""),
+        display_name=_get(topic, "display_name"),
+        description=_get(topic, "description"),
+        url=link
+        if link.startswith("http")
+        else f"{BSKY_APP}{link if link.startswith('/') else '/' + link}",
     )

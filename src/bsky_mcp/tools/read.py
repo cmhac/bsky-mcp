@@ -8,6 +8,7 @@ from fastmcp import FastMCP
 from pydantic import Field
 
 from bsky_mcp.bluesky import formatting as fmt
+from bsky_mcp.bluesky.core import SearchFilters
 from bsky_mcp.tools import READ_ONLY, Actor, ApiProvider, Cursor, Limit, PostId, run
 
 
@@ -88,9 +89,39 @@ def register(mcp: FastMCP, api: ApiProvider) -> None:
         author: Annotated[
             str | None, Field(description="Only posts by this handle or DID.")
         ] = None,
+        since: Annotated[
+            str | None, Field(description="Posts on or after this ISO date or datetime.")
+        ] = None,
+        until: Annotated[
+            str | None, Field(description="Posts before this ISO date or datetime.")
+        ] = None,
+        lang: Annotated[str | None, Field(description="Language code, e.g. 'en'.")] = None,
+        mentions: Annotated[
+            str | None, Field(description="Only posts mentioning this handle or DID.")
+        ] = None,
+        tags: Annotated[
+            list[str] | None, Field(description="Hashtags (all must match), with or without #.")
+        ] = None,
+        domain: Annotated[
+            str | None, Field(description="Only posts linking to this domain.")
+        ] = None,
+        url: Annotated[
+            str | None,
+            Field(description="Only posts linking to this https URL, e.g. a published story."),
+        ] = None,
     ) -> fmt.PostPage:
-        """Search Bluesky posts."""
-        return await run(api().search_posts(query, limit, cursor, sort, author))
+        """Search Bluesky posts, optionally filtered by date, language, mentions, hashtags,
+        linked domain, or a specific linked URL."""
+        filters = SearchFilters(
+            since=since,
+            until=until,
+            lang=lang,
+            mentions=mentions,
+            tags=tags,
+            domain=domain,
+            url=url,
+        )
+        return await run(api().search_posts(query, limit, cursor, sort, author, filters))
 
     @mcp.tool(annotations=READ_ONLY)
     async def search_users(

@@ -33,6 +33,28 @@ EXPECTED_TOOLS = {
     "repost",
     "unrepost",
     "delete_post",
+    # spec 002
+    "get_quotes",
+    "get_likes",
+    "get_reposted_by",
+    "get_feed",
+    "get_feed_info",
+    "get_account_feeds",
+    "get_suggested_feeds",
+    "search_feeds",
+    "get_suggested_follows",
+    "get_similar_accounts",
+    "get_trending_topics",
+    "search_starter_packs",
+    "get_starter_pack",
+    "get_account_starter_packs",
+    "get_lists",
+    "get_list",
+    "get_list_feed",
+    "create_list",
+    "add_to_list",
+    "remove_from_list",
+    "delete_list",
 }
 
 
