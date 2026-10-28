@@ -31,6 +31,11 @@ changes how many can be requested in one call. Publishing, blocking, and muting 
   skipped and reported, never followed twice.
 - Q: Should one bad account fail the whole batch? → A: No. Each account gets its own result, as in
   `add_to_list`.
+- Q: Batch size limit? → A: Keep 25, matching `add_to_list`.
+- Q: What happens when Bluesky rate-limits partway through? → A: Stop at once and mark every
+  remaining account "not attempted".
+- Q: Keep the old one-account `actor` input? → A: No. Replace it outright with `actors`; the shape
+  of the tool call changes.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -121,9 +126,8 @@ and no follows are created.
 ### Functional Requirements
 
 - **FR-001**: The `follow` tool MUST accept a list of 1-25 accounts, each a handle or DID, and
-  follow every account in it that is not already followed. [NEEDS CLARIFICATION: size limit stays
-  at 25 to match `add_to_list`, or should it be raised, e.g. to 100, so 686 accounts take 7 calls
-  instead of 28?]
+  follow every account in it that is not already followed. The limit is 25, matching
+  `add_to_list`.
 - **FR-002**: The tool MUST return one result per requested account, in request order, each naming
   the account as the caller supplied it and one status: "followed", "already_following", or
   "not_found" (matching the `added` / `already_member` / `not_found` pattern of `add_to_list`).
@@ -136,27 +140,29 @@ and no follows are created.
 - **FR-006**: Accounts repeated within one batch, including a handle and the DID of the same
   account, MUST result in a single follow.
 - **FR-007**: The owner's own account MUST NOT be followed, and its result MUST say so.
-- **FR-008**: If Bluesky refuses or fails some accounts for reasons other than "not found" (for
-  example a rate limit), the response MUST still report every account, marking the ones that were
-  not completed so the caller can retry exactly those. [NEEDS CLARIFICATION: when Bluesky rate-
-  limits partway through, should the tool stop at once and mark the remaining accounts "not
-  attempted", or keep trying each remaining account and mark failures individually?]
+- **FR-008**: If Bluesky rate-limits the owner partway through a batch, the tool MUST stop
+  immediately, not try the remaining accounts, and still return a result for every account in the
+  request. Accounts handled before the limit keep their normal status, and every account not
+  attempted is marked "not_attempted" so the caller can wait and resend exactly those. A failure
+  that is specific to one account and is not a rate limit is reported for that account only and the
+  batch continues (FR-004).
 - **FR-009**: `follow` MUST remain a reversible, engagement-level action: `unfollow` is unchanged,
   and no new Bluesky operation, collection, or tool is added beyond what Principle II already
   permits. Tests that pin the exact tool set and operation allowlist MUST still pass.
 - **FR-010**: The tool description MUST tell Claude the per-call limit, that already-followed
   accounts are skipped, and that failures can be retried by resending only those accounts.
-- **FR-011**: The README and the tool contract documents MUST describe the new `follow` input and
-  results. [NEEDS CLARIFICATION: should the old one-account `actor` input keep working alongside
-  `actors` for existing callers, or be replaced outright, as `add_to_list` has only `actors`?]
-- **FR-012**: No account identifiers beyond what the caller supplied and the resolved handle MAY be
-  logged, and secrets MUST NOT appear in results or errors (Principle V).
+- **FR-011**: The one-account `actor` input MUST be removed and replaced by the `actors` list, as
+  with `add_to_list`; a single account is a list of one. A call that supplies `actor` MUST be
+  refused rather than silently ignored. The README and the tool contract documents MUST describe the
+  new `follow` input and results.
+- **FR-012**: Secrets MUST NOT appear in results, errors, or logs (Principle V).
 
 ### Key Entities
 
 - **Follow request batch**: An ordered list of 1-25 accounts, each given as a handle or DID.
 - **Follow result**: For one requested account, the account as supplied and a status: "followed",
-  "already_following", or "not_found" (plus whatever additional status FR-007 and FR-008 settle).
+  "already_following", "not_found", or "not_attempted" (after a rate limit). Self-follow and
+  account-specific refusals (FR-007, edge cases) are reported with their own distinguishable status.
 - **Follow (record)**: The owner's existing relationship to an account on Bluesky; one per account.
 
 ## Success Criteria *(mandatory)*
@@ -172,14 +178,15 @@ and no follows are created.
 - **SC-004**: A batch containing one bad account still follows every valid new account in it.
 - **SC-005**: An empty or oversized batch changes nothing on the owner's account and tells the
   caller the allowed range.
-- **SC-006**: The set of tools and Bluesky operations the server can reach is unchanged, apart from
-  the new shape of the `follow` input.
+- **SC-006**: When Bluesky rate-limits partway through a batch, the response still accounts for
+  every requested account, and no account after the limit is attempted.
+- **SC-007**: The set of tools and Bluesky operations the server can reach is unchanged, apart from
+  the new shape of the `follow` input (`actors` replaces `actor`).
 
 ## Assumptions
 
 - The owner is the only user; they trust Claude to follow accounts they have asked for, which is
   already true for single follows.
-- The 25-account limit mirrors `add_to_list` unless the owner chooses otherwise (FR-001).
 - Results use the same status-word style as `add_to_list` (`already_following` mirrors
   `already_member`).
 - Accounts are processed in request order; there is no requirement that a batch be all-or-nothing.

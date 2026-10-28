@@ -13,7 +13,7 @@
 
 ## Requirement Completeness
 
-- [ ] No [NEEDS CLARIFICATION] markers remain (3 open: FR-001 limit, FR-008 rate-limit behavior, FR-011 `actor` compatibility)
+- [x] No [NEEDS CLARIFICATION] markers remain
 - [x] Requirements are testable and unambiguous
 - [x] Success criteria are measurable
 - [x] Success criteria are technology-agnostic (no implementation details)
@@ -33,5 +33,5 @@
 
 - Tool and status names (`follow`, `already_following`) are kept because this repo's specs describe
   the MCP tool surface; they are the user-facing contract.
-- Resolve the three markers with the owner before `/speckit-plan` (Constitution: specs are approved
-  before planning).
+- All three clarifications were answered by the owner on 2026-10-28 and recorded in the spec.
+  Ready for `/speckit-plan`.
