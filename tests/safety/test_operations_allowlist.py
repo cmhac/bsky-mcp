@@ -30,10 +30,12 @@ def test_allowlist_contents() -> None:
     assert ops.POST not in ops.CREATABLE_COLLECTIONS
     assert "app.bsky.graph.block" not in ops.CREATABLE_COLLECTIONS
     assert "app.bsky.graph.block" not in ops.DELETABLE_COLLECTIONS
-    assert {ops.FOLLOW, ops.LIKE, ops.REPOST, ops.POST} == ops.DELETABLE_COLLECTIONS
+    graph_list = {ops.LIST, ops.LIST_ITEM}
+    assert {ops.FOLLOW, ops.LIKE, ops.REPOST, ops.POST} | graph_list == ops.DELETABLE_COLLECTIONS
+    assert {ops.FOLLOW, ops.LIKE, ops.REPOST} | graph_list == ops.CREATABLE_COLLECTIONS
     assert "app.bsky.draft.deleteDraft" not in ops.ALLOWED_OPERATIONS
     assert not any(n.startswith("chat.") for n in ops.ALLOWED_OPERATIONS)
-    assert not any("list" in c.lower() for c in ops.CREATABLE_COLLECTIONS)
+    assert "app.bsky.graph.listblock" not in ops.CREATABLE_COLLECTIONS
 
 
 @pytest.mark.parametrize("nsid", FORBIDDEN_NSIDS)
@@ -48,8 +50,8 @@ def test_unlisted_operations_rejected(nsid: str) -> None:
         (ops.CREATE_RECORD, ops.POST),  # publishing
         (ops.CREATE_RECORD, "app.bsky.graph.block"),
         (ops.DELETE_RECORD, "app.bsky.graph.block"),
-        (ops.CREATE_RECORD, "app.bsky.graph.list"),
-        (ops.DELETE_RECORD, "app.bsky.graph.list"),
+        (ops.CREATE_RECORD, "app.bsky.graph.listblock"),
+        (ops.DELETE_RECORD, "app.bsky.graph.listblock"),
         (ops.DELETE_RECORD, "app.bsky.actor.profile"),
         (ops.CREATE_RECORD, None),
     ],
@@ -70,7 +72,7 @@ def test_writes_outside_own_repo_rejected(collection: str) -> None:
 
 
 def test_allowed_writes_pass() -> None:
-    for collection in ops.CREATABLE_COLLECTIONS:
+    for collection in (ops.FOLLOW, ops.LIKE, ops.REPOST):
         ops.check_operation(
             ops.CREATE_RECORD, {"repo": OWNER_DID, "collection": collection}, OWNER_DID
         )
@@ -150,6 +152,28 @@ def test_wrapper_surface_has_no_forbidden_methods() -> None:
         "repost",
         "unrepost",
         "delete_own_post",
+        # spec 002
+        "quotes",
+        "likes",
+        "reposted_by",
+        "feed",
+        "feed_info",
+        "account_feeds",
+        "suggested_feeds",
+        "search_feeds",
+        "suggested_follows",
+        "similar_accounts",
+        "trending_topics",
+        "search_starter_packs",
+        "starter_pack",
+        "account_starter_packs",
+        "lists",
+        "list_detail",
+        "list_feed",
+        "create_list",
+        "add_to_list",
+        "remove_from_list",
+        "delete_own_list",
     }
     for banned in ("post", "publish", "send", "block", "delete_draft", "mute"):
         assert not any(name == banned or name.startswith(f"{banned}_") for name in public)

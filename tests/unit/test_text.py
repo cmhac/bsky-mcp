@@ -5,12 +5,17 @@ from __future__ import annotations
 import pytest
 
 from bsky_mcp.bluesky.text import (
+    FEED_COLLECTION,
+    LIST_COLLECTION,
+    STARTER_PACK_COLLECTION,
     InvalidInputError,
     TooLongError,
     count_graphemes,
     parse_actor,
     parse_https_url,
     parse_post,
+    parse_record_link,
+    validate_date_range,
     validate_post_text,
 )
 
@@ -85,3 +90,56 @@ def test_links_must_be_https() -> None:
         parse_https_url("http://example.com")
     with pytest.raises(InvalidInputError):
         parse_https_url("javascript:alert(1)")
+
+
+# -- spec 002 parsers -------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("value", "collection", "actor", "rkey"),
+    [
+        (
+            "https://bsky.app/profile/a.bsky.social/feed/hot",
+            FEED_COLLECTION,
+            "a.bsky.social",
+            "hot",
+        ),
+        ("https://bsky.app/profile/did:plc:x/lists/3k", LIST_COLLECTION, "did:plc:x", "3k"),
+        (
+            "https://bsky.app/starter-pack/a.bsky.social/p1",
+            STARTER_PACK_COLLECTION,
+            "a.bsky.social",
+            "p1",
+        ),
+        ("at://did:plc:x/app.bsky.graph.list/3k", LIST_COLLECTION, "did:plc:x", "3k"),
+    ],
+)
+def test_parse_record_link(value: str, collection: str, actor: str, rkey: str) -> None:
+    ref = parse_record_link(value, collection)
+    assert (ref.actor, ref.collection, ref.rkey) == (actor, collection, rkey)
+    assert ref.at_uri("did:plc:y") == f"at://did:plc:y/{collection}/{rkey}"
+
+
+@pytest.mark.parametrize(
+    ("value", "collection"),
+    [
+        ("https://bsky.app/profile/a.bsky.social/lists/3k", FEED_COLLECTION),
+        ("at://did:plc:x/app.bsky.graph.listblock/3k", LIST_COLLECTION),
+        ("https://example.com/profile/a/feed/hot", FEED_COLLECTION),
+        ("", LIST_COLLECTION),
+    ],
+)
+def test_parse_record_link_rejects_wrong_kind(value: str, collection: str) -> None:
+    with pytest.raises(InvalidInputError):
+        parse_record_link(value, collection)
+
+
+def test_validate_date_range() -> None:
+    since, until = validate_date_range("2026-10-01", "2026-10-28T12:00:00-04:00")
+    assert since is not None and since.startswith("2026-10-01T00:00:00")
+    assert until is not None and until.startswith("2026-10-28T12:00:00-04:00")
+    assert validate_date_range(None, None) == (None, None)
+    with pytest.raises(InvalidInputError):
+        validate_date_range("2026-10-28", "2026-10-28")
+    with pytest.raises(InvalidInputError):
+        validate_date_range("yesterday", None)

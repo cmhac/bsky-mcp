@@ -22,6 +22,21 @@ PostId = Annotated[
 Actor = Annotated[str, Field(description="A Bluesky handle (with or without @) or a DID.")]
 
 READ_ONLY = {"readOnlyHint": True, "openWorldHint": True}
+DESTRUCTIVE = {"readOnlyHint": False, "destructiveHint": True, "openWorldHint": True}
+CONFIRM_WORD = "delete"
+Confirm = Annotated[
+    str | None,
+    Field(description='Must be exactly "delete", given only after the user asked.'),
+]
+
+
+def require_confirmation(confirm: str | None, what: str) -> None:
+    """Guarded deletions (Principle II) refuse to run without the exact confirmation word."""
+    if confirm != CONFIRM_WORD:
+        raise ToolError(
+            f'confirmation_required: pass confirm="delete" only after the user explicitly '
+            f"asked, in their own message, to delete this {what}."
+        )
 
 
 async def run[T](call: Awaitable[T]) -> T:

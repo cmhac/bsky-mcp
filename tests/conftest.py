@@ -6,15 +6,22 @@ import base64
 import os
 from collections.abc import AsyncIterator, Iterator
 from dataclasses import dataclass, field
-from typing import Any, Literal
+from typing import Any
 
 import pytest
 from fastmcp import Client
 
 from bsky_mcp.bluesky import formatting as fmt
-from bsky_mcp.bluesky.client import BlueskyError, DraftPostInput, validate_draft_posts
+from bsky_mcp.bluesky.client import (
+    BlueskyError,
+    DraftPostInput,
+    normalize_filters,
+    validate_draft_posts,
+)
+from bsky_mcp.bluesky.core import SearchFilters, SortOrder
 from bsky_mcp.bluesky.text import parse_actor, parse_post
 from bsky_mcp.server import create_server
+from tests.fake_discovery import FakeDiscovery
 
 OWNER_DID = "did:plc:owner"
 OWNER_HANDLE = "owner.bsky.social"
@@ -82,15 +89,16 @@ def _post(did: str, handle: str, rkey: str, text: str) -> dict[str, Any]:
 
 
 @dataclass
-class FakeBluesky:
+class FakeBluesky(FakeDiscovery):
     """In-memory implementation of BlueskyAPI for tool contract tests."""
 
     posts: dict[str, dict[str, Any]] = field(default_factory=dict)
     drafts: dict[str, list[DraftPostInput]] = field(default_factory=dict)
     following: set[str] = field(default_factory=set)
-    likes: set[str] = field(default_factory=set)
+    liked: set[str] = field(default_factory=set)
     reposts: set[str] = field(default_factory=set)
     calls: list[str] = field(default_factory=list)
+    last_filters: SearchFilters | None = None
     next_draft: int = 1
 
     def __post_init__(self) -> None:
@@ -106,7 +114,7 @@ class FakeBluesky:
             url=fmt.post_url(post["author"]["handle"], post["uri"]),
             author_handle=post["author"]["handle"],
             text=post["text"],
-            viewer_liked=post["uri"] in self.likes,
+            viewer_liked=post["uri"] in self.liked,
             viewer_reposted=post["uri"] in self.reposts,
         )
 
@@ -184,9 +192,11 @@ class FakeBluesky:
         query: str,
         limit: int,
         cursor: str | None,
-        sort: Literal["top", "latest"],
+        sort: SortOrder,
         author: str | None,
+        filters: SearchFilters | None = None,
     ) -> fmt.PostPage:
+        self.last_filters = normalize_filters(filters)
         self.calls.append(f"search_posts:{query}:{sort}:{author}")
         return self._page()
 
@@ -250,10 +260,10 @@ class FakeBluesky:
         return self._result(action, uri, changed)
 
     async def like(self, post: str) -> fmt.EngagementResult:
-        return await self._toggle(post, self.likes, "like", True)
+        return await self._toggle(post, self.liked, "like", True)
 
     async def unlike(self, post: str) -> fmt.EngagementResult:
-        return await self._toggle(post, self.likes, "unlike", False)
+        return await self._toggle(post, self.liked, "unlike", False)
 
     async def repost(self, post: str) -> fmt.EngagementResult:
         return await self._toggle(post, self.reposts, "repost", True)

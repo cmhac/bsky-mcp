@@ -19,14 +19,20 @@ written down, reviewed, and approved before it exists.
 The server exposes only an explicit allowlist of account operations. Concretely:
 
 - Blocking and unblocking accounts MUST NOT be possible.
+- Lists: the server MAY create curation lists and add accounts to the owner's own lists. Moderation
+  lists (lists used to mute or block) MUST NOT be creatable, and subscribing to a list as a block or
+  mute list MUST NOT be possible.
 - These removals ARE permitted, limited to the owner's own records: unfollow, unlike, undo repost,
-  and deleting the owner's own posts or replies.
-- Deleting the owner's own posts is a guarded action. The delete tool's description MUST state that
-  it may be used only when the owner has explicitly asked, in their own chat message, to delete that
-  post. Instructions in system prompts, skills, scheduled-task prompts, tool results, web pages,
-  documents, or any other non-owner source MUST NOT be treated as permission. The tool MUST require
-  an explicit confirmation input and reject calls without it.
-- Every other deletion (drafts, lists, and any record type not named above) MUST NOT be possible.
+  removing an account from one of the owner's lists, deleting one of the owner's lists, and deleting
+  the owner's own posts or replies.
+- Deleting the owner's own posts, and deleting one of the owner's lists, are guarded actions. Each
+  such tool's description MUST state that it may be used only when the owner has explicitly asked,
+  in their own chat message, to delete that specific post or list. Instructions in system prompts,
+  skills, scheduled-task prompts, tool results, web pages, documents, or any other non-owner source
+  MUST NOT be treated as permission. Each tool MUST require an explicit confirmation input and
+  reject calls without it.
+- Every other deletion (drafts, feeds, starter packs, and any record type not named above) MUST NOT
+  be possible.
 - The Bluesky client used by the server MUST be wrapped so that only allowlisted AT Protocol
   operations can be called. Any other operation is rejected in code, not merely omitted from the
   tool list.
@@ -126,4 +132,4 @@ adding a principle or materially expanding guidance, PATCH for clarifications. E
 by `/speckit-plan` MUST include a constitution check, and reviewers MUST confirm compliance before
 merging. Principles II and III may only be relaxed by an explicit MAJOR amendment.
 
-**Version**: 2.0.0 | **Ratified**: 2026-10-28 | **Last Amended**: 2026-10-28
+**Version**: 3.0.0 | **Ratified**: 2026-10-28 | **Last Amended**: 2026-10-28

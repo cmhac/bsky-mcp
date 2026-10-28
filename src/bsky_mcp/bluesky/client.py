@@ -27,12 +27,16 @@ from pydantic import BaseModel, Field
 
 from bsky_mcp.bluesky import formatting as fmt
 from bsky_mcp.bluesky import operations as ops
+from bsky_mcp.bluesky.core import BlueskyError, SearchFilters, SortOrder
+from bsky_mcp.bluesky.discovery import DiscoveryAPI, DiscoveryMixin
+from bsky_mcp.bluesky.lists import ListsAPI, ListsMixin
 from bsky_mcp.bluesky.text import (
     InvalidInputError,
     PostRef,
     parse_actor,
     parse_https_url,
     parse_post,
+    validate_date_range,
     validate_post_text,
 )
 
@@ -41,15 +45,6 @@ DRAFT_DEVICE_NAME = "Claude (bsky-mcp)"
 MAX_DRAFT_POSTS = 100
 MAX_LANGS = 3
 DRAFT_SCAN_PAGES = 5
-
-
-class BlueskyError(Exception):
-    """An error safe to show to the caller. Messages never contain credentials."""
-
-    def __init__(self, code: str, message: str) -> None:
-        super().__init__(message)
-        self.code = code
-        self.message = message
 
 
 class DraftPostInput(BaseModel):
@@ -62,7 +57,7 @@ class DraftPostInput(BaseModel):
     link_url: str | None = Field(default=None, description="Optional https link card.")
 
 
-class BlueskyAPI(Protocol):
+class BlueskyAPI(DiscoveryAPI, ListsAPI, Protocol):
     """The operations tools may use. Implemented by SafeBlueskyClient and by test fakes."""
 
     async def me(self) -> fmt.ProfileView: ...
@@ -86,8 +81,9 @@ class BlueskyAPI(Protocol):
         query: str,
         limit: int,
         cursor: str | None,
-        sort: Literal["top", "latest"],
+        sort: SortOrder,
         author: str | None,
+        filters: SearchFilters | None = None,
     ) -> fmt.PostPage: ...
     async def search_users(self, query: str, limit: int, cursor: str | None) -> fmt.ProfilePage: ...
     async def create_draft(
@@ -104,6 +100,22 @@ class BlueskyAPI(Protocol):
     async def repost(self, post: str) -> fmt.EngagementResult: ...
     async def unrepost(self, post: str) -> fmt.EngagementResult: ...
     async def delete_own_post(self, post: str) -> fmt.DeletedPost: ...
+
+
+def normalize_filters(filters: SearchFilters | None) -> SearchFilters:
+    """Validate and normalize search filters: date order, actor syntax, tags without '#'."""
+    f = filters or SearchFilters()
+    since, until = validate_date_range(f.since, f.until)
+    tags = [t.strip().lstrip("#") for t in f.tags or [] if t.strip().lstrip("#")] or None
+    return SearchFilters(
+        since=since,
+        until=until,
+        lang=f.lang.strip() if f.lang else None,
+        mentions=parse_actor(f.mentions) if f.mentions else None,
+        tags=tags,
+        domain=f.domain.strip().lower() if f.domain else None,
+        url=parse_https_url(f.url) if f.url else None,
+    )
 
 
 def validate_draft_posts(posts: list[DraftPostInput], langs: list[str] | None) -> None:
@@ -175,7 +187,7 @@ def _translate_error(exc: RequestErrorBase) -> BlueskyError:
     return BlueskyError("bluesky_unavailable", "Bluesky returned an error. Try again later.")
 
 
-class SafeBlueskyClient:
+class SafeBlueskyClient(DiscoveryMixin, ListsMixin):
     """The only Bluesky interface the tools use. Holds the SDK client privately."""
 
     __slots__ = ("__client", "__handle", "__password", "__lock", "__did")
@@ -342,15 +354,24 @@ class SafeBlueskyClient:
         query: str,
         limit: int,
         cursor: str | None,
-        sort: Literal["top", "latest"],
+        sort: SortOrder,
         author: str | None,
+        filters: SearchFilters | None = None,
     ) -> fmt.PostPage:
+        f = normalize_filters(filters)
         params = models.AppBskyFeedSearchPosts.Params(
             q=query,
             limit=limit,
             cursor=cursor,
             sort=sort,
             author=parse_actor(author) if author else None,
+            since=f.since,
+            until=f.until,
+            lang=f.lang,
+            mentions=f.mentions,
+            tag=f.tags,
+            domain=f.domain,
+            url=f.url,
         )
         res = await self._call(lambda c: c.app.bsky.feed.search_posts(params))
         return fmt.PostPage(posts=[fmt.to_post(p) for p in res.posts], cursor=res.cursor)
