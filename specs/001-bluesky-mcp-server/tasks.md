@@ -32,13 +32,13 @@ Single project: `src/bsky_mcp/`, `tests/`, `scripts/` at the repository root, pe
 
 **Purpose**: Project skeleton and local quality gates, so every later commit is checked.
 
-- [ ] T001 Create the package layout from plan.md: `src/bsky_mcp/{__init__,app,config,auth,ip_allowlist,instructions,logging}.py`, `src/bsky_mcp/bluesky/{__init__,client,operations,text,formatting}.py`, `src/bsky_mcp/tools/{__init__,read,drafts,engagement,delete}.py`, `tests/{contract,unit,safety}/__init__.py`, and `scripts/` (empty modules with docstrings only)
-- [ ] T002 Initialize `pyproject.toml` as a uv project: `requires-python = ">=3.13"`, runtime deps `fastmcp>=4.1,<5`, `atproto`, `py-key-value-aio[redis]`, a grapheme-cluster counting library, `pydantic-settings`; dev group `pytest`, `pytest-asyncio`, `ruff`, `ty`, `pre-commit`; `[tool.vercel] entrypoint = "bsky_mcp.app:app"`; run `uv lock` to create `uv.lock`
-- [ ] T003 [P] Add `.python-version` (`3.13`) and a `.gitignore` covering `.venv/`, `.env`, `.pmd/`, `__pycache__/`, `.pytest_cache/`, `.ruff_cache/`
-- [ ] T004 [P] Configure Ruff (lint rules incl. `E,F,I,B,UP,S,SIM`, line length 100) and ty in `pyproject.toml`
-- [ ] T005 [P] Write `scripts/cpd.sh`: download PMD **7.28.0** `pmd-dist-7.28.0-bin.zip` from the GitHub release into `.pmd/` if missing, verify a pinned SHA-256 (record the checksum computed on first download in the script), then run `pmd cpd --minimum-tokens 50 --language python --dir src --dir tests`; propagate CPD's exit code (4 = duplicates found)
-- [ ] T006 Create `.pre-commit-config.yaml` with pinned revs: `astral-sh/ruff-pre-commit` (`ruff-check --fix`, `ruff-format`), `astral-sh/ty-pre-commit` (`ty`), and a local `cpd` hook (`language: system`, `entry: scripts/cpd.sh`, `pass_filenames: false`, `types: [python]`); run `pre-commit run --all-files` and confirm it passes on the skeleton
-- [ ] T007 [P] Create `.env.example` listing every variable in contracts/configuration.md with empty values and a one-line comment each (mark Secret ones)
+- [X] T001 Create the package layout from plan.md: `src/bsky_mcp/{__init__,app,config,auth,ip_allowlist,instructions,logging}.py`, `src/bsky_mcp/bluesky/{__init__,client,operations,text,formatting}.py`, `src/bsky_mcp/tools/{__init__,read,drafts,engagement,delete}.py`, `tests/{contract,unit,safety}/__init__.py`, and `scripts/` (empty modules with docstrings only)
+- [X] T002 Initialize `pyproject.toml` as a uv project: `requires-python = ">=3.13"`, runtime deps `fastmcp>=4.1,<5`, `atproto`, `py-key-value-aio[redis]`, a grapheme-cluster counting library, `pydantic-settings`; dev group `pytest`, `pytest-asyncio`, `ruff`, `ty`, `pre-commit`; `[tool.vercel] entrypoint = "bsky_mcp.app:app"`; run `uv lock` to create `uv.lock`
+- [X] T003 [P] Add `.python-version` (`3.13`) and a `.gitignore` covering `.venv/`, `.env`, `.pmd/`, `__pycache__/`, `.pytest_cache/`, `.ruff_cache/`
+- [X] T004 [P] Configure Ruff (lint rules incl. `E,F,I,B,UP,S,SIM`, line length 100) and ty in `pyproject.toml`
+- [X] T005 [P] Write `scripts/cpd.sh`: download PMD **7.28.0** `pmd-dist-7.28.0-bin.zip` from the GitHub release into `.pmd/` if missing, verify a pinned SHA-256 (record the checksum computed on first download in the script), then run `pmd cpd --minimum-tokens 50 --language python --dir src --dir tests`; propagate CPD's exit code (4 = duplicates found)
+- [X] T006 Create `.pre-commit-config.yaml` with pinned revs: `astral-sh/ruff-pre-commit` (`ruff-check --fix`, `ruff-format`), `astral-sh/ty-pre-commit` (`ty`), and a local `cpd` hook (`language: system`, `entry: scripts/cpd.sh`, `pass_filenames: false`, `types: [python]`); run `pre-commit run --all-files` and confirm it passes on the skeleton
+- [X] T007 [P] Create `.env.example` listing every variable in contracts/configuration.md with empty values and a one-line comment each (mark Secret ones)
 
 ---
 
