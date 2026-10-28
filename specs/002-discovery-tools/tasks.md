@@ -45,5 +45,5 @@ description: "Task list for discovery tools and list management"
 
 - [X] T015 Update the pinned tool set in `tests/safety/test_no_publishing.py` to the 41 tools; register new modules in `src/bsky_mcp/server.py`
 - [X] T016 [P] Update `README.md` capability table and safety section (lists, guarded list deletion, no moderation lists)
-- [ ] T017 Run all gates; push; confirm CI and the Vercel preview build
+- [X] T017 Run all gates; push; confirm CI and the Vercel preview build
 - [ ] T018 (owner, after merge) Run [quickstart.md](./quickstart.md) from the phone app against production
