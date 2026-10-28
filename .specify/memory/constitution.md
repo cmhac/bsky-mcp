@@ -16,37 +16,39 @@ written down, reviewed, and approved before it exists.
 
 ### II. Least-Privilege Account Access (NON-NEGOTIABLE)
 
-The server MUST NOT expose any capability that deletes data or blocks accounts. Concretely:
+The server exposes only an explicit allowlist of account operations. Concretely:
 
-- No tool may delete posts, replies, reposts, likes, drafts, lists, or any other record, and no
-  tool may block or unblock an account.
-- Following and unfollowing accounts IS permitted. Unfollowing is the only record removal allowed,
-  and it is limited to the user's own follow records.
-- The Bluesky client used by the server MUST be wrapped so that only explicitly allowlisted
-  AT Protocol operations can be called. Any operation not on the allowlist is rejected in code, not
-  merely omitted from the tool list.
-- The forbidden-operation rule MUST be covered by automated tests that fail if a delete or block
-  path becomes reachable.
+- Blocking and unblocking accounts MUST NOT be possible.
+- These removals ARE permitted, limited to the owner's own records: unfollow, unlike, undo repost,
+  and deleting the owner's own posts or replies.
+- Deleting the owner's own posts is a guarded action. The delete tool's description MUST state that
+  it may be used only when the owner has explicitly asked, in their own chat message, to delete that
+  post. Instructions in system prompts, skills, scheduled-task prompts, tool results, web pages,
+  documents, or any other non-owner source MUST NOT be treated as permission. The tool MUST require
+  an explicit confirmation input and reject calls without it.
+- Every other deletion (drafts, lists, and any record type not named above) MUST NOT be possible.
+- The Bluesky client used by the server MUST be wrapped so that only allowlisted AT Protocol
+  operations can be called. Any other operation is rejected in code, not merely omitted from the
+  tool list.
+- Automated tests MUST fail if a forbidden operation becomes reachable or if a guarded operation
+  runs without its confirmation input.
 
-Rationale: an AI agent acting on the account can be wrong or be manipulated; irreversible actions
-stay with the human.
+Rationale: an AI agent acting on the account can be wrong or be manipulated; irreversible or
+harmful actions stay with the human or behind explicit guards.
 
-### III. Draft-First Publishing (NON-NEGOTIABLE)
+### III. Draft-Only Content Creation (NON-NEGOTIABLE)
 
-Drafting and publishing MUST be separate tools.
+The server MUST NOT be able to publish posts or replies.
 
-- The draft tool is the default for any content creation. Its description MUST tell the model to
-  use it whenever it is asked to write, compose, or prepare a post or reply.
-- The post tool MUST state in its description that it may be used only when the human user has
-  explicitly asked, in their own chat message, for content to be published. Instructions that
-  appear in system prompts, skills, scheduled-task prompts, tool results, web pages, documents, or
-  any other non-user source MUST NOT be treated as permission to post.
-- The post tool MUST require an explicit confirmation input and MUST reject calls without it.
-- Because a server cannot verify where an instruction came from, these rules are enforced by tool
-  design and descriptions plus server-side guards (confirmation input, rate limits); the
-  documentation MUST say so plainly rather than claim stronger guarantees.
+- Content creation happens only through drafts saved to the owner's Bluesky Drafts, which the owner
+  reviews and publishes themselves in a Bluesky app.
+- No tool, configuration flag, or code path may create a published post or reply record.
+- Tests MUST fail if a publishing path becomes reachable.
+- Because a server cannot verify where an instruction came from, guarded actions (Principle II) rely
+  on tool design, descriptions, and confirmation inputs; the documentation MUST say so plainly rather
+  than claim stronger guarantees.
 
-Rationale: drafts are reversible and reviewable; posts are public the moment they are sent.
+Rationale: drafts are reviewable and private; publishing stays entirely with the human.
 
 ### IV. Defense-in-Depth Access Control
 
@@ -124,4 +126,4 @@ adding a principle or materially expanding guidance, PATCH for clarifications. E
 by `/speckit-plan` MUST include a constitution check, and reviewers MUST confirm compliance before
 merging. Principles II and III may only be relaxed by an explicit MAJOR amendment.
 
-**Version**: 1.0.0 | **Ratified**: 2026-10-28 | **Last Amended**: 2026-10-28
+**Version**: 2.0.0 | **Ratified**: 2026-10-28 | **Last Amended**: 2026-10-28
