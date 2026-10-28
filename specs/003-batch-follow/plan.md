@@ -67,7 +67,7 @@ specs/003-batch-follow/
 ```text
 src/bsky_mcp/
 ├── bluesky/
-│   ├── core.py          # + shared validate_actor_batch / MAX_ACTORS_PER_CALL
+│   ├── text.py          # + shared validate_actor_batch / MAX_ACTORS_PER_CALL (beside InvalidInputError)
 │   ├── lists.py         # use the shared validator
 │   ├── formatting.py    # + FollowResult, FollowResults
 │   └── client.py        # follow(actors) loop; 429 -> "rate_limited"; Protocol signature

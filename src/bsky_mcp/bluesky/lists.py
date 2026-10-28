@@ -14,11 +14,15 @@ from atproto import models
 from bsky_mcp.bluesky import formatting as fmt
 from bsky_mcp.bluesky import operations as ops
 from bsky_mcp.bluesky.core import BlueskyError, ClientCore
-from bsky_mcp.bluesky.text import LIST_COLLECTION, InvalidInputError, parse_record_link
+from bsky_mcp.bluesky.text import (
+    LIST_COLLECTION,
+    InvalidInputError,
+    parse_record_link,
+    validate_actor_batch,
+)
 
 MAX_LIST_NAME = 64  # app.bsky.graph.list name maxLength
 MAX_LIST_DESCRIPTION = 3000  # app.bsky.graph.list description maxLength
-MAX_ACTORS_PER_ADD = 25
 MEMBERSHIP_SCAN_PAGES = 5
 DELETE_SCAN_PAGES = 50  # up to 5,000 members
 
@@ -39,11 +43,6 @@ def validate_list_fields(name: str, description: str | None) -> tuple[str, str |
             f"List descriptions are limited to {MAX_LIST_DESCRIPTION} characters."
         )
     return clean, (description.strip() or None) if description else None
-
-
-def validate_actor_batch(actors: list[str]) -> None:
-    if not 1 <= len(actors) <= MAX_ACTORS_PER_ADD:
-        raise InvalidInputError(f"Add between 1 and {MAX_ACTORS_PER_ADD} accounts at a time.")
 
 
 def _now() -> str:

@@ -5,7 +5,7 @@ from __future__ import annotations
 from fastmcp import FastMCP
 
 from bsky_mcp.bluesky import formatting as fmt
-from bsky_mcp.tools import Actor, ApiProvider, PostId, run
+from bsky_mcp.tools import Actor, ActorBatch, ApiProvider, PostId, run
 
 REVERSIBLE = {
     "readOnlyHint": False,
@@ -17,9 +17,12 @@ REVERSIBLE = {
 
 def register(mcp: FastMCP, api: ApiProvider) -> None:
     @mcp.tool(annotations=REVERSIBLE)
-    async def follow(actor: Actor) -> fmt.EngagementResult:
-        """Follow an account. Does nothing if the user already follows it."""
-        return await run(api().follow(actor))
+    async def follow(actors: ActorBatch) -> fmt.FollowResults:
+        """Follow 1-25 accounts in one call. Returns a result for each account, in order:
+        followed, already_following (skipped), not_found, is_you, failed, or not_attempted.
+        To retry, resend only the failed and not_attempted accounts. If Bluesky rate-limits the
+        call, the remaining accounts are not_attempted: wait, then resend them."""
+        return await run(api().follow(actors))
 
     @mcp.tool(annotations=REVERSIBLE)
     async def unfollow(actor: Actor) -> fmt.EngagementResult:

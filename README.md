@@ -18,7 +18,7 @@ runs on Vercel, signs you in with GitHub, and only answers requests from Anthrop
 | See trending topics (an unstable Bluesky endpoint that may stop working) | Create, edit, or delete feeds or starter packs |
 | Browse starter packs and lists, and read a list's feed | Delete drafts, or anything not listed on the left; send direct messages |
 | Save posts and threads to your Bluesky Drafts, revise them, and list them | |
-| Follow and unfollow, like and unlike, repost and undo reposts | |
+| Follow up to 25 accounts per call, unfollow, like and unlike, repost and undo reposts | |
 | Create curation lists, add and remove accounts on your own lists | |
 | Delete one of your own posts or lists, only when you ask for it in your own message | |
 
