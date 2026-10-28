@@ -13,7 +13,7 @@
 
 ## Requirement Completeness
 
-- [ ] No [NEEDS CLARIFICATION] markers remain — 3 open (FR-005, FR-009, FR-014)
+- [x] No [NEEDS CLARIFICATION] markers remain
 - [x] Requirements are testable and unambiguous
 - [x] Success criteria are measurable
 - [x] Success criteria are technology-agnostic (no implementation details)
@@ -33,5 +33,5 @@
 
 1. The spec names Ruff, ty, PMD CPD, Vercel, GitHub OAuth, and FastMCP (in the input) because the
    owner mandated them as requirements. No other implementation choices are made in the spec.
-2. Three clarifications await the owner: draft storage location (FR-005), whether the post tool
-   accepts new text or only drafts (FR-009), and whether likes and reposts are in scope (FR-014).
+2. Clarifications resolved 2026-10-28 (see the spec's Clarifications section): Bluesky Drafts for
+   storage, no publishing tool, likes/reposts with undo, and owner-permission-guarded post deletion.
