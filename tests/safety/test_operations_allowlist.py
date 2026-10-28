@@ -89,6 +89,7 @@ async def _signed_in() -> tuple[SafeBlueskyClient, RecordingRequest]:
 
 def _sdk_client(client: SafeBlueskyClient) -> GuardedAsyncClient:
     # Reach the private SDK client only to prove the guard holds even if code bypassed the wrapper.
+    # getattr is needed to reach the name-mangled private attribute on purpose.
     sdk = getattr(client, "_SafeBlueskyClient__client")  # noqa: B009
     assert isinstance(sdk, GuardedAsyncClient)
     return sdk
@@ -164,3 +165,16 @@ def test_sdk_client_is_not_exposed() -> None:
         except Exception:  # noqa: S112 - properties that need a session raise; that's fine
             continue
         assert not isinstance(value, GuardedAsyncClient), name
+
+
+async def test_lowest_request_path_is_guarded() -> None:
+    from atproto_client.client.base import InvokeType
+
+    client, request = await _signed_in()
+    sdk = _sdk_client(client)
+    before = len(request.calls)
+    with pytest.raises(ops.ForbiddenOperationError):
+        await sdk._invoke(  # noqa: SLF001 - deliberately bypassing the public SDK methods
+            InvokeType.PROCEDURE, url="https://bsky.social/xrpc/app.bsky.draft.deleteDraft"
+        )
+    assert len(request.calls) == before

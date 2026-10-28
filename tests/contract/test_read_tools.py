@@ -99,3 +99,18 @@ async def test_search(client: Client, fake: FakeBluesky) -> None:
         await client.call_tool("search_posts", {"query": "x", "sort": "random"})
     users = await client.call_tool("search_users", {"query": "other"})
     assert data(users)["profiles"][0]["handle"] == OTHER_HANDLE
+
+
+async def test_unexpected_errors_are_masked() -> None:
+    from fastmcp import Client as MCPClient
+
+    from bsky_mcp.server import create_server
+
+    class Exploding(FakeBluesky):
+        async def timeline(self, limit, cursor):
+            raise RuntimeError("internal detail redis://default:secret-token@host")
+
+    async with MCPClient(create_server(lambda: Exploding())) as c:
+        with pytest.raises(ToolError) as info:
+            await c.call_tool("get_timeline", {})
+    assert "secret-token" not in str(info.value)

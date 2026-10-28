@@ -137,6 +137,13 @@ class GuardedAsyncClient(AsyncClient):
         ops.check_operation(nsid, data, self.own_did)
         return await super().invoke_procedure(nsid, params=params, data=data, **kwargs)
 
+    async def _invoke(self, invoke_type: Any, **kwargs: Any):
+        # The SDK's single request path. Checked again here so that any future SDK method that
+        # skips invoke_query/invoke_procedure is still covered.
+        nsid = str(kwargs.get("url", "")).rsplit("/xrpc/", 1)[-1]
+        ops.check_operation(nsid, kwargs.get("data"), self.own_did)
+        return await super()._invoke(invoke_type, **kwargs)
+
 
 def _now() -> str:
     return datetime.now(UTC).isoformat().replace("+00:00", "Z")
@@ -213,6 +220,11 @@ class SafeBlueskyClient:
         client = await self._session()
         try:
             return await fn(client)
+        except UnauthorizedError:
+            # The session may have expired beyond refresh; sign in again on the next call.
+            self.__did = None
+            client.own_did = None
+            raise _translate_error(UnauthorizedError()) from None
         except RequestErrorBase as exc:
             raise _translate_error(exc) from None
 

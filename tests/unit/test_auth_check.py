@@ -48,7 +48,7 @@ def test_check_raises_for_denied_user() -> None:
         token = None
 
     with pytest.raises(AuthorizationError):
-        check(Ctx())  # type: ignore[arg-type]
+        check(Ctx())  # type: ignore[arg-type]  # minimal stand-in for AuthContext
 
 
 async def _client_as(sub: str | None) -> AsyncIterator[Client]:

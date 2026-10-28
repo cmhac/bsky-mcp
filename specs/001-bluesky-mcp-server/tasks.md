@@ -176,7 +176,7 @@ preview, and merging deploys production (quickstart step 7).
 - [X] T046 [US6] Create `.github/workflows/ci.yml` on `pull_request` and `push` to `main`: checkout, `actions/setup-java` (Temurin 17+), `astral-sh/setup-uv`, cache `.pmd/` and pre-commit, `pre-commit run --all-files --show-diff-on-failure`, `uv run pytest`
 - [ ] T047 (owner: Vercel Git integration) [US6] Connect the repository to the Vercel project via the Git integration (previews per PR, production from `main`) and confirm a preview URL appears on this PR
 - [ ] T048 (owner: depends on GitHub plan) [US6] Make CI a required check on `main` (branch protection or ruleset); if the account is on GitHub Free with a private repo, document in README that merge blocking needs GitHub Pro or a public repo (research R9)
-- [ ] T049 [US6] Prove the gate: push a temporary commit with a ≥50-token duplicated block, confirm the `cpd` check fails locally and in CI, then revert
+- [X] T049 [US6] Prove the gate: push a temporary commit with a ≥50-token duplicated block, confirm the `cpd` check fails locally and in CI, then revert
 
 **Checkpoint**: Delivery pipeline verified.
 
@@ -204,10 +204,10 @@ preview, and merging deploys production (quickstart step 7).
 
 ## Phase 9: Polish & Cross-Cutting Concerns
 
-- [ ] T053 [P] Review every tool error path for secret leakage; extend `tests/unit/test_logging.py` to cover tool error messages
-- [ ] T054 [P] Confirm CPD, Ruff, and ty pass with no suppressions added; justify any `# noqa` or `# ty: ignore` inline
-- [ ] T055 Run the full quickstart (steps 1–7) against production, including the SC-003 (20 prompts) and SC-004 (10 prompts) checks, and record results in `specs/001-bluesky-mcp-server/validation.md`
-- [ ] T056 Update `CLAUDE.md` at the repo root with project commands (uv, pre-commit, pytest) and a pointer to the constitution and Spec Kit workflow
+- [X] T053 [P] Review every tool error path for secret leakage; extend `tests/unit/test_logging.py` to cover tool error messages
+- [X] T054 [P] Confirm CPD, Ruff, and ty pass with no suppressions added; justify any `# noqa` or `# ty: ignore` inline
+- [ ] T055 (owner: needs live deploy) Run the full quickstart (steps 1–7) against production, including the SC-003 (20 prompts) and SC-004 (10 prompts) checks, and record results in `specs/001-bluesky-mcp-server/validation.md`
+- [X] T056 Update `CLAUDE.md` at the repo root with project commands (uv, pre-commit, pytest) and a pointer to the constitution and Spec Kit workflow
 
 ---
 
