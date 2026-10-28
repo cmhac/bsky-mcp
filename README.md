@@ -72,8 +72,9 @@ chat with Claude.** Every secret goes straight into Vercel.
    production.
 2. The first deploy will fail at startup until the environment variables are set. That is expected:
    the server refuses to start with missing configuration.
-3. Note the production domain, for example `https://bsky-mcp-yourname.vercel.app`. This is your
-   **`BASE_URL`**.
+3. Note the production domain, for example `https://bsky-mcp-yourname.vercel.app`, or the custom
+   domain you assign. This is your **`BASE_URL`**. If you change domains later, update `BASE_URL`
+   and the GitHub OAuth callback URL (step 3), then redeploy.
 4. In **Settings → Deployment Protection**, keep **Standard Protection**, which
    [protects every deployment except production domains](https://vercel.com/docs/deployment-protection).
 
