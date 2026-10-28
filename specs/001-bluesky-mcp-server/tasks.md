@@ -86,13 +86,13 @@ matches the Bluesky app (quickstart step 6).
 
 ### Tests for User Story 1
 
-- [ ] T025 [P] [US1] Contract tests in `tests/contract/test_read_tools.py` for all ten read tools in contracts/tools.md: input bounds (`limit` 1–100, default 25; `depth` 0–10, default 6; `parent_height` 0–20, default 10), paging cursors, `readOnlyHint: true`, PostView/ProfileView/NotificationView fields from data-model.md, and `not_found`/`invalid_input` errors
+- [X] T025 [P] [US1] Contract tests in `tests/contract/test_read_tools.py` for all ten read tools in contracts/tools.md: input bounds (`limit` 1–100, default 25; `depth` 0–10, default 6; `parent_height` 0–20, default 10), paging cursors, `readOnlyHint: true`, PostView/ProfileView/NotificationView fields from data-model.md, and `not_found`/`invalid_input` errors
 
 ### Implementation for User Story 1
 
-- [ ] T026 [P] [US1] Implement response shaping in `src/bsky_mcp/bluesky/formatting.py`: PostView (incl. `url` as `https://bsky.app/profile/{handle}/post/{rkey}`, counts, `reply_parent_url`, `viewer_liked`, `viewer_reposted`), ProfileView, NotificationView
-- [ ] T027 [US1] Add read methods to `SafeBlueskyClient` in `src/bsky_mcp/bluesky/client.py` (timeline, notifications, thread, profile, author feed, followers, follows, search posts, search actors)
-- [ ] T028 [US1] Implement the read tools in `src/bsky_mcp/tools/read.py` (`get_my_profile`, `get_timeline`, `get_notifications`, `get_thread`, `get_profile`, `get_author_posts`, `get_followers`, `get_follows`, `search_posts`, `search_users`) with annotations and bounds from contracts/tools.md
+- [X] T026 [P] [US1] Implement response shaping in `src/bsky_mcp/bluesky/formatting.py`: PostView (incl. `url` as `https://bsky.app/profile/{handle}/post/{rkey}`, counts, `reply_parent_url`, `viewer_liked`, `viewer_reposted`), ProfileView, NotificationView
+- [X] T027 [US1] Add read methods to `SafeBlueskyClient` in `src/bsky_mcp/bluesky/client.py` (timeline, notifications, thread, profile, author feed, followers, follows, search posts, search actors)
+- [X] T028 [US1] Implement the read tools in `src/bsky_mcp/tools/read.py` (`get_my_profile`, `get_timeline`, `get_notifications`, `get_thread`, `get_profile`, `get_author_posts`, `get_followers`, `get_follows`, `search_posts`, `search_users`) with annotations and bounds from contracts/tools.md
 
 **Checkpoint**: US1 contract tests pass; the server is useful read-only.
 
@@ -108,13 +108,13 @@ and nothing on the public profile (quickstart step 6).
 
 ### Tests for User Story 2
 
-- [ ] T029 [P] [US2] Contract tests in `tests/contract/test_draft_tools.py`: `create_draft` with 1–100 posts; each post "at most 300 graphemes" (error names post index and count); empty post with no embed rejected; `quote` resolves to a strong reference; `link_url` must be https; `device_name` is `Claude (bsky-mcp)`; `langs` at most 3; `update_draft` re-reads and returns `draft_not_found` when missing; `list_drafts` paging; no tool accepts a reply target
-- [ ] T030 [P] [US2] Safety tests in `tests/safety/test_no_publishing.py`: no registered tool and no `SafeBlueskyClient` method can create an `app.bsky.feed.post` record; server instructions and the `create_draft` description contain the required draft-only and reply-in-chat wording from contracts/tools.md
+- [X] T029 [P] [US2] Contract tests in `tests/contract/test_draft_tools.py`: `create_draft` with 1–100 posts; each post "at most 300 graphemes" (error names post index and count); empty post with no embed rejected; `quote` resolves to a strong reference; `link_url` must be https; `device_name` is `Claude (bsky-mcp)`; `langs` at most 3; `update_draft` re-reads and returns `draft_not_found` when missing; `list_drafts` paging; no tool accepts a reply target
+- [X] T030 [P] [US2] Safety tests in `tests/safety/test_no_publishing.py`: no registered tool and no `SafeBlueskyClient` method can create an `app.bsky.feed.post` record; server instructions and the `create_draft` description contain the required draft-only and reply-in-chat wording from contracts/tools.md
 
 ### Implementation for User Story 2
 
-- [ ] T031 [US2] Add draft methods to `SafeBlueskyClient` in `src/bsky_mcp/bluesky/client.py` (`create_draft`, `update_draft` with re-read check, `get_drafts`; never `delete_draft`)
-- [ ] T032 [US2] Implement `create_draft`, `update_draft`, `list_drafts` in `src/bsky_mcp/tools/drafts.py` using the descriptions from `instructions.py`; responses include the note that the owner publishes from a Bluesky app
+- [X] T031 [US2] Add draft methods to `SafeBlueskyClient` in `src/bsky_mcp/bluesky/client.py` (`create_draft`, `update_draft` with re-read check, `get_drafts`; never `delete_draft`)
+- [X] T032 [US2] Implement `create_draft`, `update_draft`, `list_drafts` in `src/bsky_mcp/tools/drafts.py` using the descriptions from `instructions.py`; responses include the note that the owner publishes from a Bluesky app
 
 **Checkpoint**: US1 and US2 work independently.
 

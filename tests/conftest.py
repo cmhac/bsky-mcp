@@ -271,6 +271,18 @@ class FakeBluesky:
         return fmt.DeletedPost(deleted=True, url=view.url, text=view.text)
 
 
+def data(result: Any) -> dict[str, Any]:
+    """The structured content of a tool result (fails the test if missing)."""
+    assert result.structured_content is not None
+    return result.structured_content
+
+
+def ann(tool: Any) -> Any:
+    """A tool's annotations (fails the test if missing)."""
+    assert tool.annotations is not None
+    return tool.annotations
+
+
 OWN_POST_URL = f"https://bsky.app/profile/{OWNER_HANDLE}/post/own1"
 OTHER_POST_URL = f"https://bsky.app/profile/{OTHER_HANDLE}/post/other1"
 
